@@ -1,4 +1,4 @@
-const API_BASE = 'https://hiive-backend-production.up.railway.app';
+const API_BASE = 'https://hiive-prospect-automation-production.up.railway.app';
 
 // DOM elements
 const statTotal = document.getElementById('stat-total');
