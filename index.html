@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hiive Prospect Automation System</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Hiive Prospect Automation System</h1>
+      <div class="status-indicators">
+        <span class="status supabase">Supabase</span>
+        <span class="status exa">Hunter.io</span>
+        <span class="status perplexity">Perplexity</span>
+      </div>
+      <div class="stats">
+        Total Prospects: <span id="stat-total">0</span> |
+        Researched: <span id="stat-researched">0</span> |
+        New Discoveries: <span id="stat-new">0</span>
+      </div>
+    </header>
+    <main>
+      <section class="card discovery-card">
+        <h2>📊 Prospect Discovery</h2>
+        <form id="discovery-form">
+          <label for="company-input">Company Name</label>
+          <input id="company-input" type="text" placeholder="Enter company name (e.g., OpenAI, Stripe)" required />
+          <button type="submit" id="discover-btn">Discover Prospects</button>
+        </form>
+      </section>
+      <section class="card db-card">
+        <h2>📋 Prospects Database</h2>
+        <div class="table-controls">
+          <input id="search-input" type="text" placeholder="Search prospects..." />
+          <div class="filter-buttons">
+            <button id="sort-quality" class="btn-filter">Sort by Equity Score</button>
+            <button id="filter-high" class="btn-filter">High Equity Only</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table id="prospects-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Equity Score</th>
+                <th>Data Confidence</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Table content will be dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Research Modal -->
+  <div id="research-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content" id="modal-content">
+      <button class="modal-close" id="modal-close">&times;</button>
+      <h2>Prospect Research</h2>
+      <div id="modal-research">
+        <!-- Research content will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="frontend-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.js"></script>
+</body>
+</html> 
