@@ -1975,6 +1975,45 @@ app.delete('/api/delete-prospect/:id', async (req, res) => {
   }
 });
 
+// Delete prospect endpoint
+app.delete('/api/prospects/:id', async (req, res) => {
+  console.log('🗑️ Delete prospect request for ID:', req.params.id);
+  try {
+    const prospectId = req.params.id;
+    if (!prospectId) {
+      return res.status(400).json({ error: 'Prospect ID is required' });
+    }
+    // Delete from Supabase
+    const { data, error } = await supabase
+      .from('prospects')
+      .delete()
+      .eq('id', prospectId);
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return res.status(500).json({ error: 'Failed to delete prospect from database' });
+    }
+    console.log('✅ Prospect deleted successfully:', prospectId);
+    res.json({ success: true, message: 'Prospect deleted successfully' });
+  } catch (error) {
+    console.error('Delete prospect error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Endpoint to list all available routes
+app.get('/api/endpoints', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach(function(r){
+    if (r.route && r.route.path){
+      routes.push({
+        method: Object.keys(r.route.methods)[0].toUpperCase(),
+        path: r.route.path
+      });
+    }
+  });
+  res.json(routes);
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
