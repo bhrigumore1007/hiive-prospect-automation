@@ -41,9 +41,14 @@ body, html {
   padding: 1.5rem;
 }
 .max-w-6xl {
-  max-width: 72rem;
+  max-width: 90vw;
   margin-left: auto;
   margin-right: auto;
+}
+@media (min-width: 1600px) {
+  .max-w-6xl {
+    max-width: 80rem;
+  }
 }
 .mx-auto {
   margin-left: auto;
