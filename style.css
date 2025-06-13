@@ -33,6 +33,8 @@ body, html {
 
 .min-h-screen {
   min-height: 100vh;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 .bg-\[\#19434f\] {
   background: #19434f;
@@ -439,7 +441,7 @@ body, html {
 }
 
 .logo-hiive {
-  height: 39px;
+  height: 29px;
   width: auto;
   display: block;
   margin: 0 auto 12px auto;
