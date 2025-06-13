@@ -2030,4 +2030,41 @@ app.listen(PORT, () => {
   console.log('🔑 Test Perplexity Key: http://localhost:' + PORT + '/api/test-perplexity-key');
   console.log('🔑 Test Key Status: http://localhost:' + PORT + '/api/test-key');
   console.log('🔬 Research Prospect: http://localhost:' + PORT + '/api/research-prospect/:id');
+});
+
+// POST /api/find-prospects endpoint
+app.post('/api/find-prospects', async (req, res) => {
+  console.log('🔍 Find prospects request:', req.body);
+  try {
+    const { company } = req.body;
+    if (!company) {
+      return res.status(400).json({ error: 'Company name is required' });
+    }
+    console.log(`🏢 Searching for prospects at: ${company}`);
+
+    // Use the same logic as GET endpoint
+    const companyProfile = await researchCompanyAndProspects(company, []);
+    const prospectResults = await findEquityProspects(company, companyProfile);
+    const filteredProspects = prospectResults.results.filter(prospect => {
+      const isRealistic = isRealisticSeller(prospect, company);
+      const isValid = isValidProspect(prospect);
+      return isRealistic && isValid;
+    });
+
+    let storedCount = 0;
+    if (filteredProspects.length > 0) {
+      storedCount = await storeProspects(filteredProspects, company, companyProfile);
+    }
+
+    res.json({
+      success: true,
+      company: companyProfile,
+      prospects_found: filteredProspects.length,
+      prospects_stored: storedCount,
+      prospects: filteredProspects
+    });
+  } catch (error) {
+    console.error('Find prospects error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }); 
