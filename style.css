@@ -31,6 +31,11 @@ body, html {
   color: #424242;
 }
 
+body {
+  padding: 24px 0;
+  margin: 0;
+}
+
 .min-h-screen {
   min-height: 100vh;
   padding-top: 24px;
@@ -445,4 +450,8 @@ body, html {
   width: auto;
   display: block;
   margin: 0 auto 20px auto;
+}
+
+.main-container {
+  padding: 0 6px;
 }
