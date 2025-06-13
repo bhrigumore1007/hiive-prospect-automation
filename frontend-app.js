@@ -88,11 +88,7 @@ discoveryForm.addEventListener('submit', async (e) => {
   discoverBtn.disabled = true;
   discoverBtn.textContent = 'Discovering...';
   try {
-    const response = await fetch(`${API_BASE}/api/discover`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ company })
-    });
+    const response = await fetch(`${API_BASE}/api/find-prospects/${encodeURIComponent(company)}`);
     if (response.ok) {
       await loadProspects();
       companyInput.value = '';
