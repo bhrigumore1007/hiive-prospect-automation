@@ -14,13 +14,13 @@ let allProspects = [];
 
 function renderTable(prospects) {
   tableBody.innerHTML = '';
-  prospects.forEach(p => {
-    tableBody.insertAdjacentHTML('beforeend', displayProspectRow(p));
+  prospects.forEach((p, idx) => {
+    tableBody.insertAdjacentHTML('beforeend', displayProspectRow(p, idx));
   });
   lucide.createIcons();
 }
 
-function displayProspectRow(prospect) {
+function displayProspectRow(prospect, idx) {
   // Parse research notes for confidence if available
   let scoringDetails = null;
   try {
@@ -42,6 +42,7 @@ function displayProspectRow(prospect) {
 
   return `
     <tr>
+      <td class="font-medium text-[#424242]">${idx + 1}</td>
       <td class="font-medium text-[#424242]">${prospect.full_name || ''}</td>
       <td>
         <div class="text-[#424242]">${prospect.role_title || ''}</div>
@@ -53,7 +54,7 @@ function displayProspectRow(prospect) {
       <td>
         <div class="flex items-center gap-2 action-buttons">
           <button class="btn-table bg-[#ef5d60] hover:bg-[#f15f61] text-white" data-view="${prospect.id}">View Details</button>
-          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60]" data-delete="${prospect.id}"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60]" data-delete="${prospect.id}"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
         </div>
       </td>
     </tr>
