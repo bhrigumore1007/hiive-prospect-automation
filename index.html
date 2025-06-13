@@ -7,59 +7,92 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
   <link href="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.css" rel="stylesheet" />
+  <!-- Add Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <h1>Hiive Prospect Automation System</h1>
-      <div class="status-indicators">
-        <span class="status supabase">Supabase</span>
-        <span class="status exa">Hunter.io</span>
-        <span class="status perplexity">Perplexity</span>
+  <div class="min-h-screen">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="flex items-center justify-center mb-4">
+          <img src="/hiive-icon.png" alt="Hiive Logo" class="h-[20px]" />
+        </div>
+        <h1 class="text-white text-3xl font-light" style="font-family: Plantin MT Pro, serif">
+          Prospect Automation System
+        </h1>
       </div>
-      <div class="stats">
-        Total Prospects: <span id="stat-total">0</span> |
-        Researched: <span id="stat-researched">0</span> |
-        New Discoveries: <span id="stat-new">0</span>
-      </div>
-    </header>
-    <main>
-      <section class="card discovery-card">
-        <h2>📊 Prospect Discovery</h2>
-        <form id="discovery-form">
-          <label for="company-input">Company Name</label>
-          <input id="company-input" type="text" placeholder="Enter company name (e.g., OpenAI, Stripe)" required />
-          <button type="submit" id="discover-btn">Discover Prospects</button>
-        </form>
-      </section>
-      <section class="card db-card">
-        <h2>📋 Prospects Database</h2>
-        <div class="table-controls">
-          <input id="search-input" type="text" placeholder="Search prospects..." />
-          <div class="filter-buttons">
-            <button id="sort-quality" class="btn-filter">Sort by Equity Score</button>
-            <button id="filter-high" class="btn-filter">High Equity Only</button>
+
+      <div class="space-y-6">
+        <!-- Prospect Discovery Card -->
+        <div class="card bg-[#eaeae0] border-0 rounded-2xl">
+          <div class="card-header pb-4">
+            <h2 class="card-title flex items-center gap-2 text-[#424242] text-lg font-medium">
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-[#ef5d60]"></i>
+              Prospect Discovery
+            </h2>
+          </div>
+          <div class="card-content space-y-4">
+            <form id="discovery-form">
+              <div>
+                <label for="company-input" class="block text-[#424242] text-sm font-medium mb-2">Company Name</label>
+                <input
+                  id="company-input"
+                  type="text"
+                  placeholder="Enter company name (e.g., OpenAI, Stripe)"
+                  class="input bg-white border-gray-200 text-[#424242] placeholder:text-gray-400"
+                  required
+                />
+              </div>
+              <button type="submit" id="discover-btn" class="btn-primary w-full">
+                Discover Prospects
+              </button>
+            </form>
           </div>
         </div>
-        <div class="table-wrapper">
-          <table id="prospects-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Equity Score</th>
-                <th>Data Confidence</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Table content will be dynamically populated -->
-            </tbody>
-          </table>
+
+        <!-- Prospects Database Card -->
+        <div class="card bg-[#eaeae0] border-0 rounded-2xl">
+          <div class="card-header pb-4">
+            <h2 class="card-title flex items-center gap-2 text-[#424242] text-lg font-medium">
+              <div class="w-5 h-5 bg-[#424242] rounded-sm flex items-center justify-center">
+                <div class="w-3 h-2 bg-white rounded-sm"></div>
+              </div>
+              Prospects Database
+            </h2>
+          </div>
+          <div class="card-content space-y-4">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Search prospects..."
+                class="input pl-10 bg-white border-gray-200 text-[#424242] placeholder:text-gray-400"
+              />
+            </div>
+
+            <div class="overflow-x-auto">
+              <table id="prospects-table" class="table">
+                <thead>
+                  <tr class="border-gray-200">
+                    <th class="text-[#424242] font-medium">Name</th>
+                    <th class="text-[#424242] font-medium">Position</th>
+                    <th class="text-[#424242] font-medium">Equity Score</th>
+                    <th class="text-[#424242] font-medium">Data Confidence</th>
+                    <th class="text-[#424242] font-medium">Status</th>
+                    <th class="text-[#424242] font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Table content will be dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   </div>
 
   <!-- Research Modal -->
@@ -75,5 +108,9 @@
 
   <script src="frontend-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
 </body>
 </html> 
