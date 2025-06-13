@@ -102,11 +102,11 @@ function displayProspectRow(prospect) {
   // Show discrepancy if status doesn't match expected
   let qualificationBadge;
   if (actualStatus === 'qualified') {
-    qualificationBadge = '<span class="badge verified">✓ Qualified</span>';
+    qualificationBadge = '<span class="status-badge qualified">✓ Qualified</span>';
   } else if (actualStatus === 'needs_research' && shouldBeQualified) {
-    qualificationBadge = '<span class="badge unverified">⚠ Should be Qualified</span>';
+    qualificationBadge = '<span class="status-badge researched">⚠ Should be Qualified</span>';
   } else {
-    qualificationBadge = '<span class="badge unverified">⚠ Needs Research</span>';
+    qualificationBadge = '<span class="status-badge researched">⚠ Needs Research</span>';
   }
   
   // Get equity score color
@@ -120,25 +120,17 @@ function displayProspectRow(prospect) {
   
   return `
     <tr>
-      <td>
-        <div style="font-weight: 600;">${prospect.full_name || 'Unknown'}</div>
+      <td class="prospect-name">${prospect.full_name || 'Unknown'}</td>
+      <td class="prospect-position">
+        <div class="title">${prospect.role_title || 'Unknown'}</div>
+        <div class="company">${prospect.company_name || 'Unknown'}</div>
       </td>
-      <td>
-        <div>${prospect.role_title || 'Unknown'}</div>
-        <div style="font-size: 0.85em; color: #9ca3af;">${prospect.company_name || 'Unknown'}</div>
-      </td>
-      <td>
-        <div class="equity-score">
-          ${prospect.priority_score || 0}/10
-        </div>
-      </td>
-      <td><strong>${confidenceDisplay}</strong></td>
+      <td class="equity-score">${prospect.priority_score || 0}/10</td>
+      <td class="data-score">${confidenceDisplay}</td>
       <td>${qualificationBadge}</td>
       <td>
-        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-          <button class="btn-view" data-view="${prospect.id}">View Details</button>
-          <button class="btn-delete" data-delete="${prospect.id}">Delete</button>
-        </div>
+        <button class="btn-view" data-view="${prospect.id}">View Details</button>
+        <button class="btn-delete" data-delete="${prospect.id}">Delete</button>
       </td>
     </tr>
   `;
