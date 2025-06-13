@@ -5,75 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hiive Prospect Automation System</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-  <link href="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.css" rel="stylesheet" />
-  <!-- Add Lucide icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Plantin MT Pro is not available on Google Fonts, so fallback to serif -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-[#19434f] p-6">
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="flex items-center justify-center mb-4">
           <img src="/hiive-icon.png" alt="Hiive Logo" class="h-[20px]" />
         </div>
-        <h1 class="text-white text-3xl font-light" style="font-family: Plantin MT Pro, serif">
+        <h1 class="text-white text-3xl font-light" style="font-family: 'Plantin MT Pro', serif;">
           Prospect Automation System
         </h1>
       </div>
-
       <div class="space-y-6">
         <!-- Prospect Discovery Card -->
-        <div class="card bg-[#eaeae0] border-0 rounded-2xl">
-          <div class="card-header pb-4">
-            <h2 class="card-title flex items-center gap-2 text-[#424242] text-lg font-medium">
+        <div class="bg-[#eaeae0] border-0 rounded-2xl">
+          <div class="pb-4 px-6 pt-6">
+            <div class="flex items-center gap-2 text-[#424242] text-lg font-medium">
               <i data-lucide="bar-chart-3" class="w-5 h-5 text-[#ef5d60]"></i>
               Prospect Discovery
-            </h2>
+            </div>
           </div>
-          <div class="card-content space-y-4">
+          <div class="space-y-4 px-6 pb-6">
             <form id="discovery-form">
               <div>
                 <label for="company-input" class="block text-[#424242] text-sm font-medium mb-2">Company Name</label>
-                <input
-                  id="company-input"
-                  type="text"
-                  placeholder="Enter company name (e.g., OpenAI, Stripe)"
-                  class="input bg-white border-gray-200 text-[#424242] placeholder:text-gray-400"
-                  required
-                />
+                <input id="company-input" type="text" placeholder="Enter company name (e.g., OpenAI, Stripe)" class="bg-white border border-gray-200 text-[#424242] placeholder:text-gray-400 rounded-lg w-full px-4 py-3" required />
               </div>
-              <button type="submit" id="discover-btn" class="btn-primary w-full">
-                Discover Prospects
-              </button>
+              <button type="submit" id="discover-btn" class="w-full bg-[#ef5d60] hover:bg-[#f15f61] text-white font-medium py-3 rounded-lg transition-colors">Discover Prospects</button>
             </form>
           </div>
         </div>
-
         <!-- Prospects Database Card -->
-        <div class="card bg-[#eaeae0] border-0 rounded-2xl">
-          <div class="card-header pb-4">
-            <h2 class="card-title flex items-center gap-2 text-[#424242] text-lg font-medium">
+        <div class="bg-[#eaeae0] border-0 rounded-2xl">
+          <div class="pb-4 px-6 pt-6">
+            <div class="flex items-center gap-2 text-[#424242] text-lg font-medium">
               <div class="w-5 h-5 bg-[#424242] rounded-sm flex items-center justify-center">
                 <div class="w-3 h-2 bg-white rounded-sm"></div>
               </div>
               Prospects Database
-            </h2>
-          </div>
-          <div class="card-content space-y-4">
-            <div class="relative">
-              <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"></i>
-              <input
-                id="search-input"
-                type="text"
-                placeholder="Search prospects..."
-                class="input pl-10 bg-white border-gray-200 text-[#424242] placeholder:text-gray-400"
-              />
             </div>
-
+          </div>
+          <div class="space-y-4 px-6 pb-6">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+              <input id="search-input" type="text" placeholder="Search prospects..." class="pl-10 bg-white border border-gray-200 text-[#424242] placeholder:text-gray-400 rounded-lg w-full px-4 py-3" />
+            </div>
             <div class="overflow-x-auto">
-              <table id="prospects-table" class="table">
+              <table id="prospects-table" class="min-w-full">
                 <thead>
                   <tr class="border-gray-200">
                     <th class="text-[#424242] font-medium">Name</th>
@@ -85,7 +70,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- Table content will be dynamically populated -->
+                  <!-- Populated by JS -->
                 </tbody>
               </table>
             </div>
@@ -94,23 +79,15 @@
       </div>
     </div>
   </div>
-
-  <!-- Research Modal -->
+  <!-- Modal -->
   <div id="research-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-content" id="modal-content">
+    <div class="modal-content">
       <button class="modal-close" id="modal-close">&times;</button>
       <h2>Prospect Research</h2>
-      <div id="modal-research">
-        <!-- Research content will be injected here -->
-      </div>
+      <div id="modal-research"></div>
     </div>
   </div>
-
   <script src="frontend-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/slim-select@2.8.0/dist/slimselect.min.js"></script>
-  <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-  </script>
+  <script>lucide.createIcons();</script>
 </body>
 </html> 
