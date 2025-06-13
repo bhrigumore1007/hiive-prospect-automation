@@ -54,7 +54,7 @@ function displayProspectRow(prospect, idx) {
       <td>
         <div class="flex items-center gap-2 action-buttons">
           <button class="btn-table bg-[#ef5d60] hover:bg-[#f15f61] text-white" data-view="${prospect.id}">View Details</button>
-          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60]" data-delete="${prospect.id}"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60] delete-btn" data-id="${prospect.id}"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
         </div>
       </td>
     </tr>
@@ -148,6 +148,35 @@ modalClose.addEventListener('click', () => {
 modal.addEventListener('click', (e) => {
   if (e.target === modal) modal.style.display = 'none';
 });
+
+// Event delegation for delete buttons
+// (placed outside renderTable to avoid duplicate listeners)
+document.addEventListener('click', function(e) {
+  if (e.target.matches('.delete-btn') || e.target.closest('.delete-btn')) {
+    const btn = e.target.matches('.delete-btn') ? e.target : e.target.closest('.delete-btn');
+    const prospectId = btn.getAttribute('data-id');
+    if (prospectId) {
+      deleteProspect(prospectId);
+    }
+  }
+});
+
+async function deleteProspect(prospectId) {
+  try {
+    const response = await fetch(`${API_BASE}/api/prospects/${prospectId}`, {
+      method: 'DELETE'
+    });
+    if (response.ok) {
+      allProspects = allProspects.filter(p => String(p.id) !== String(prospectId));
+      renderTable(allProspects);
+      console.log('Prospect deleted successfully');
+    } else {
+      console.error('Failed to delete prospect');
+    }
+  } catch (error) {
+    console.error('Error deleting prospect:', error);
+  }
+}
 
 // Initial load
 loadProspects();
