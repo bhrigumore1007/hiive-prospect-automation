@@ -25,16 +25,6 @@
     <header class="header">
       <img src="hiive-logo.svg" alt="Hiive Logo" style="width:92.58px;height:22px;display:block;margin:0 auto 18px auto;" />
       <h1 class="hiive-title">Prospect Automation System</h1>
-      <div class="status-indicators">
-        <span class="status supabase">Supabase</span>
-        <span class="status exa">Hunter.io</span>
-        <span class="status perplexity">Perplexity</span>
-      </div>
-      <div class="stats">
-        Total Prospects: <span id="stat-total">0</span> |
-        Researched: <span id="stat-researched">0</span> |
-        New Discoveries: <span id="stat-new">0</span>
-      </div>
     </header>
     <main>
       <section class="card discovery-card">
@@ -49,10 +39,6 @@
         <h2>📋 Prospects Database</h2>
         <div class="table-controls">
           <input id="search-input" type="text" placeholder="Search prospects..." />
-          <div class="filter-buttons">
-            <button id="sort-quality" class="btn-filter">Sort by Equity Score</button>
-            <button id="filter-high" class="btn-filter">High Equity Only</button>
-          </div>
         </div>
         <div class="table-wrapper">
           <table id="prospects-table">

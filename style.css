@@ -56,88 +56,47 @@ body {
   margin-bottom: 18px;
 }
 #discovery-form label {
-  font-family: var(--hiive-body-font);
-  font-size: 16px;
-  color: var(--hiive-primary-text);
-  font-weight: 400;
-  margin-bottom: 8px;
+  display: block;
+  margin-bottom: 14px;
 }
 #company-input {
+  display: block;
+  margin-bottom: 0;
+}
+#discover-btn {
+  display: block;
+  margin-top: 16px;
+}
+.table-controls {
+  margin-bottom: 24px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+#search-input {
   background: var(--hiive-input-bg);
+  color: var(--hiive-primary-text);
+  font-family: var(--hiive-body-font);
+  font-size: 16px;
   border: none;
   border-radius: var(--hiive-radius);
-  padding: 0 16px;
-  color: var(--hiive-primary-text);
-  font-size: 16px;
   height: 44px;
   width: 100%;
   max-width: 1552px;
-  margin-bottom: 16px;
-  font-family: var(--hiive-body-font);
+  margin: 0;
+  box-sizing: border-box;
 }
-#company-input::placeholder {
+#search-input::placeholder {
   color: var(--hiive-primary-text);
   opacity: 0.7;
   font-family: var(--hiive-body-font);
   font-size: 16px;
 }
-#discover-btn {
-  background: var(--hiive-btn-primary);
-  color: var(--hiive-white);
-  border: none;
-  border-radius: var(--hiive-radius);
-  height: 44px;
+#company-input, #discover-btn, #search-input {
   width: 100%;
   max-width: 1552px;
-  font-family: var(--hiive-body-font);
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s;
-}
-#discover-btn:hover {
-  background: #e04d4f;
-}
-.db-card input[type="text"], #search-input {
-  background: var(--hiive-input-bg);
-  border: none;
-  border-radius: var(--hiive-radius);
-  padding: 0 16px;
-  color: var(--hiive-primary-text);
-  font-size: 16px;
-  height: 44px;
-  width: 100%;
-  max-width: 400px;
-  font-family: var(--hiive-body-font);
-}
-.table-controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.filter-buttons {
-  display: flex;
-  gap: 8px;
-}
-.btn-filter {
-  padding: 8px 16px;
-  background: var(--hiive-bg);
-  color: var(--hiive-white);
-  border: none;
-  border-radius: var(--hiive-radius);
-  font-size: 15.2px;
-  font-family: var(--hiive-body-font);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-.btn-filter.active, .btn-filter:hover {
-  background: var(--hiive-secondary-text);
-  color: var(--hiive-white);
+  min-width: 0;
 }
 .table-wrapper {
   width: 100%;
@@ -151,13 +110,11 @@ body {
   background: var(--hiive-card-bg);
 }
 #prospects-table th {
+  background: #FFFFFF;
+  color: #424242;
   font-family: var(--hiive-body-font);
   font-weight: 500;
   font-size: 16px;
-  color: var(--hiive-primary-text);
-  background: var(--hiive-card-bg);
-  padding: 12px 8px;
-  text-align: left;
   border-bottom: 2px solid #d3d3c3;
 }
 #prospects-table td {
@@ -180,15 +137,16 @@ body {
   color: var(--hiive-primary-text);
 }
 .prospect-position .title {
+  color: #424242;
   font-family: var(--hiive-body-font);
-  font-weight: 400;
   font-size: 16px;
-  color: var(--hiive-primary-text);
+  font-weight: 400;
 }
 .prospect-position .company {
+  color: #F15F61;
   font-family: var(--hiive-body-font);
   font-size: 13.6px;
-  color: var(--hiive-secondary-text);
+  font-weight: 400;
 }
 .equity-score, .data-score {
   font-family: var(--hiive-body-font);
@@ -212,13 +170,13 @@ body {
   background: var(--hiive-status-research);
 }
 .btn-view {
-  background: var(--hiive-btn-primary);
-  color: var(--hiive-white);
-  border: none;
-  border-radius: var(--hiive-radius);
-  font-size: 15.2px;
+  background: #F15F61;
+  color: #FFFFFF;
   font-family: var(--hiive-body-font);
   font-weight: 500;
+  font-size: 15.2px;
+  border-radius: var(--hiive-radius);
+  border: none;
   padding: 8px 20px;
   margin-right: 8px;
   cursor: pointer;
@@ -266,9 +224,10 @@ body {
     padding: 8px;
     min-height: unset;
   }
-  #company-input, #discover-btn {
-    height: 38px;
+  #company-input, #discover-btn, #search-input {
     font-size: 14px;
+    height: 38px;
+    max-width: 100vw;
   }
   #prospects-table th, #prospects-table td {
     font-size: 13px;
@@ -709,3 +668,6 @@ body {
   height: 16px;
   vertical-align: middle;
 }
+
+/* Remove status indicators, stats, and filter button styles */
+.status-indicators, .status, .stats, .filter-buttons, .btn-filter { display: none !important; }
