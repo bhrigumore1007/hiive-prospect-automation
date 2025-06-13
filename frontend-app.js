@@ -21,14 +21,12 @@ function renderTable(prospects) {
 }
 
 function displayProspectRow(prospect, idx) {
-  // Parse research notes for confidence if available
   let scoringDetails = null;
   try {
     const researchNotes = typeof prospect.research_notes === 'string' ? JSON.parse(prospect.research_notes) : prospect.research_notes;
     scoringDetails = researchNotes?.scoring_details || null;
   } catch (e) { scoringDetails = null; }
 
-  // Status badge
   let badge = '';
   if (prospect.qualification_status === 'qualified') {
     badge = '<span class="badge badge-success">✓ Qualified</span>';
@@ -36,7 +34,6 @@ function displayProspectRow(prospect, idx) {
     badge = '<span class="badge badge-warning">&#9888; Needs Research</span>';
   }
 
-  // Confidence
   const rawConfidence = scoringDetails?.data_quality?.raw_confidence;
   const confidenceDisplay = rawConfidence ? `${Math.round(rawConfidence * 100)}%` : `${prospect.confidence_level || 0}/5`;
 
@@ -54,7 +51,7 @@ function displayProspectRow(prospect, idx) {
       <td>
         <div class="flex items-center gap-2 action-buttons">
           <button class="btn-table bg-[#ef5d60] hover:bg-[#f15f61] text-white" data-view="${prospect.id}">View Details</button>
-          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60] delete-btn" data-id="${prospect.id}"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+          <button class="btn-ghost text-[#424242] hover:text-[#ef5d60] delete-btn" data-id="${prospect.id}"><span><i data-lucide="trash-2" class="w-3 h-3"></i></span></button>
         </div>
       </td>
     </tr>
@@ -149,32 +146,57 @@ modal.addEventListener('click', (e) => {
   if (e.target === modal) modal.style.display = 'none';
 });
 
-// Event delegation for delete buttons
-// (placed outside renderTable to avoid duplicate listeners)
+// Use this for re-rendering after delete
+function renderProspectsTable(prospects) {
+  renderTable(prospects);
+  setupDeleteButtons();
+}
+
+// Add event delegation for delete buttons with debugging
 document.addEventListener('click', function(e) {
+  console.log('Click detected on:', e.target);
   if (e.target.matches('.delete-btn') || e.target.closest('.delete-btn')) {
+    console.log('Delete button clicked!');
     const btn = e.target.matches('.delete-btn') ? e.target : e.target.closest('.delete-btn');
     const prospectId = btn.getAttribute('data-id');
-    if (prospectId) {
-      deleteProspect(prospectId);
-    }
+    console.log('Prospect ID:', prospectId);
+    deleteProspect(prospectId);
   }
 });
 
+// Also try direct event listeners after table render
+function setupDeleteButtons() {
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prospectId = this.getAttribute('data-id');
+      console.log('Direct delete clicked for ID:', prospectId);
+      deleteProspect(prospectId);
+    };
+  });
+}
+
 async function deleteProspect(prospectId) {
+  console.log('deleteProspect called with ID:', prospectId);
+  if (!prospectId) {
+    console.error('No prospect ID provided');
+    return;
+  }
   try {
     const response = await fetch(`${API_BASE}/api/prospects/${prospectId}`, {
       method: 'DELETE'
     });
+    console.log('Delete response:', response);
     if (response.ok) {
-      allProspects = allProspects.filter(p => String(p.id) !== String(prospectId));
-      renderTable(allProspects);
-      console.log('Prospect deleted successfully');
+      console.log('Delete successful, updating table');
+      allProspects = allProspects.filter(p => p.id != prospectId);
+      renderProspectsTable(allProspects);
     } else {
-      console.error('Failed to delete prospect');
+      console.error('Delete failed:', response.status);
     }
   } catch (error) {
-    console.error('Error deleting prospect:', error);
+    console.error('Delete error:', error);
   }
 }
 
