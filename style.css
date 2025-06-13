@@ -212,10 +212,10 @@ body, html {
   border-radius: 0.25rem;
 }
 .w-3 {
-  width: 0.75rem;
+  width: 0.8125rem;
 }
 .h-3 {
-  height: 0.75rem;
+  height: 0.8125rem;
 }
 .border-gray-200 {
   border-color: #e5e7eb;
@@ -284,7 +284,7 @@ body, html {
   background: #ef5d60;
   color: #fff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 4px !important;
   font-size: 1em;
   font-weight: 500;
   padding: 0.5em 1.2em;
@@ -356,7 +356,7 @@ body, html {
   background: #ef5d60;
   color: #fff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 4px !important;
   font-size: 0.95em;
   font-weight: 500;
   padding: 0.5em 1.1em;
@@ -399,6 +399,7 @@ body, html {
 .badge {
   font-size: 0.92em;
   padding: 0.22em 0.8em;
+  border-radius: 4px !important;
 }
 .btn-table {
   font-size: 0.92em;
@@ -428,4 +429,18 @@ body, html {
   padding-right: 1.5rem;
   padding-bottom: 1.5rem;
   padding-top: 0;
+}
+
+.badge-success {
+  border-radius: 4px !important;
+}
+.badge-warning {
+  border-radius: 4px !important;
+}
+
+.logo-hiive {
+  height: 44px;
+  width: auto;
+  display: block;
+  margin: 0 auto 12px auto;
 }
