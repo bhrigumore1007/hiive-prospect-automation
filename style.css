@@ -341,3 +341,86 @@ body, html {
     padding-right: 0.5rem;
   }
 }
+/* Logo height */
+.h-\[32px\] {
+  height: 32px;
+}
+
+/* Button color and hover */
+.btn-table, .w-full.bg-\[\#ef5d60\] {
+  background: #ef5d60;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95em;
+  font-weight: 500;
+  padding: 0.5em 1.1em;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.btn-table:hover, .w-full.bg-\[\#ef5d60\]:hover {
+  background: #f15f61;
+}
+
+/* Add spacing between company search input and button */
+#company-input {
+  margin-bottom: 1rem;
+}
+#discover-btn {
+  margin-top: 0.2rem;
+}
+
+/* Card content padding and input width */
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.pb-6 {
+  padding-bottom: 1.5rem;
+}
+.pt-6 {
+  padding-top: 1.5rem;
+}
+.bg-\[\#eaeae0\] > .space-y-4, .bg-\[\#eaeae0\] > .space-y-4 > * {
+  box-sizing: border-box;
+}
+.bg-\[\#eaeae0\] input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Reduce badge and action button size */
+.badge {
+  font-size: 0.92em;
+  padding: 0.22em 0.8em;
+}
+.btn-table {
+  font-size: 0.92em;
+  padding: 0.35em 0.9em;
+}
+.btn-ghost {
+  font-size: 1em;
+  padding: 0.25em 0.5em;
+}
+
+/* Fix search bar overflow */
+#search-input, #company-input {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+.relative {
+  position: relative;
+}
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+/* Ensure equal padding on all sides of card content */
+.space-y-4.px-6.pb-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  padding-top: 0;
+}
