@@ -2067,4 +2067,4 @@ app.post('/api/find-prospects', async (req, res) => {
     console.error('Find prospects error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}); 
+}); // Force redeploy Fri Jun 13 16:21:37 PDT 2025
