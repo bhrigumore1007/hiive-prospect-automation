@@ -149,30 +149,34 @@ function showProspectModal(prospect) {
     <div>
       <div class="hiive-modal-title">${prospect.full_name || ''}</div>
       <div class="hiive-modal-subtitle">${prospect.company_name || ''} &mdash; ${prospect.role_title || ''}</div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
         ${statusBadge}
         <span class="hiive-liquidity-score">${liquidityDot} Liquidity Score: <b>${liquidityScore !== null ? liquidityScore : 'N/A'}</b></span>
       </div>
     </div>
   </div>`;
-  // Basic Info Card
-  html += `<div class="hiive-modal-section"><div class="hiive-card">
-    <div class="hiive-card-header"><i data-lucide='user'></i> Basic Information</div>
-    <div><span class="hiive-label">Name</span><div class="hiive-value">${prospect.full_name || ''}</div></div>
-    <div><span class="hiive-label">Title</span><div class="hiive-value">${prospect.role_title || ''}</div></div>
-    <div><span class="hiive-label">Company</span><div class="hiive-value">${prospect.company_name || ''}</div></div>
-    <div><span class="hiive-label">Status</span><div class="hiive-value">${prospect.qualification_status === 'qualified' ? 'Qualified' : 'Needs Research'}</div></div>
-    <div><span class="hiive-label">Equity Score</span><div class="hiive-value">${prospect.priority_score || 'N/A'}/10</div></div>
-    <div><span class="hiive-label">Data Confidence</span><div class="hiive-value">${prospect.confidence_level || 'N/A'}/5</div></div>
+  // Basic Info Card (2-column grid)
+  html += `<div class="hiive-modal-section"><div class="modal-card">
+    <div class="modal-card-header"><i data-lucide='user'></i> Basic Information</div>
+    <div class="modal-info-grid">
+      <div class="modal-info-item"><span class="modal-info-label">Name</span><span class="modal-info-value">${prospect.full_name || ''}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Title</span><span class="modal-info-value">${prospect.role_title || ''}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Company</span><span class="modal-info-value">${prospect.company_name || ''}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Status</span><span class="modal-info-value">${prospect.qualification_status === 'qualified' ? 'Qualified' : 'Needs Research'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Equity Score</span><span class="modal-info-value">${prospect.priority_score || 'N/A'}/10</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Data Confidence</span><span class="modal-info-value">${prospect.confidence_level || 'N/A'}/5</span></div>
+    </div>
   </div></div>`;
-  // Equity Analysis Card
-  html += `<div class="hiive-modal-section"><div class="hiive-card">
-    <div class="hiive-card-header"><i data-lucide='briefcase'></i> Equity Analysis</div>
-    <div><span class="hiive-label">Job Seniority</span><div class="hiive-value">${enhanced.job_seniority || 'N/A'}</div></div>
-    <div><span class="hiive-label">Estimated Tenure</span><div class="hiive-value">${enhanced.estimated_tenure || 'N/A'}</div></div>
-    <div><span class="hiive-label">Equity Value</span><div class="hiive-value">${enhanced.estimated_equity_value || 'N/A'}</div></div>
-    <div><span class="hiive-label">Preferred Channel</span><div class="hiive-value">${enhanced.preferred_channel || 'N/A'}</div></div>
-    <div><span class="hiive-label">KYC Status</span><div class="hiive-value">${enhanced.kyc_status || 'N/A'}</div></div>
+  // Equity Analysis Card (2-column grid)
+  html += `<div class="hiive-modal-section"><div class="modal-card">
+    <div class="modal-card-header"><i data-lucide='briefcase'></i> Equity Analysis</div>
+    <div class="equity-analysis-grid">
+      <div class="modal-info-item"><span class="modal-info-label">Job Seniority</span><span class="modal-info-value">${enhanced.job_seniority || 'N/A'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Estimated Tenure</span><span class="modal-info-value">${enhanced.estimated_tenure || 'N/A'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Equity Value</span><span class="modal-info-value">${enhanced.estimated_equity_value || 'N/A'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Preferred Channel</span><span class="modal-info-value">${enhanced.preferred_channel || 'N/A'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">KYC Status</span><span class="modal-info-value">${enhanced.kyc_status || 'N/A'}</span></div>
+    </div>
   </div></div>`;
   // Liquidity Signals Card
   let signals = enhanced.liquidity_signals || [];
@@ -180,21 +184,21 @@ function showProspectModal(prospect) {
     try { signals = JSON.parse(signals); } catch { signals = [signals]; }
   }
   if (!Array.isArray(signals)) signals = [signals];
-  html += `<div class="hiive-modal-section"><div class="hiive-card hiive-card-amber">
-    <div class="hiive-card-header"><i data-lucide='zap'></i> Liquidity Signals</div>
-    <ul style="margin:0 0 0 18px;padding:0;">
-      ${signals.filter(Boolean).map(s => `<li style='margin-bottom:6px;font-size:14px;color:#b45309;'>${s}</li>`).join('') || '<li style="color:#888;">No signals found</li>'}
+  html += `<div class="hiive-modal-section"><div class="modal-card liquidity-signals">
+    <div class="modal-card-header"><i data-lucide='zap'></i> Liquidity Signals</div>
+    <ul>
+      ${signals.filter(Boolean).map(s => `<li>${s}</li>`).join('') || '<li style="color:#888;">No signals found</li>'}
     </ul>
   </div></div>`;
   // Outreach Strategy Card
-  html += `<div class="hiive-modal-section"><div class="hiive-card hiive-card-green">
-    <div class="hiive-card-header"><i data-lucide='mail'></i> Outreach Strategy</div>
-    <div class="hiive-value" style="white-space:pre-line;">${enhanced.outreach_strategy || 'N/A'}</div>
+  html += `<div class="hiive-modal-section"><div class="modal-card outreach-strategy">
+    <div class="modal-card-header"><i data-lucide='mail'></i> Outreach Strategy</div>
+    <p>${enhanced.outreach_strategy || 'N/A'}</p>
   </div></div>`;
   // Sales Summary Card
-  html += `<div class="hiive-modal-section"><div class="hiive-card hiive-card-blue">
-    <div class="hiive-card-header"><i data-lucide='bar-chart-2'></i> Sales Summary</div>
-    <div class="hiive-value" style="white-space:pre-line;">${enhanced.sales_summary || 'N/A'}</div>
+  html += `<div class="hiive-modal-section"><div class="modal-card sales-summary">
+    <div class="modal-card-header"><i data-lucide='bar-chart-2'></i> Sales Summary</div>
+    <p>${enhanced.sales_summary || 'N/A'}</p>
   </div></div>`;
   // Focus, accessibility, and animation
   const modalContent = document.getElementById('modal-hiive-content');
