@@ -69,15 +69,24 @@ function filterTable() {
 }
 
 async function loadProspects() {
+  console.log('🔍 Loading prospects from backend...');
   try {
-    const res = await fetch(`${API_BASE}/api/test-db`);
-    const json = await res.json();
-    if (json.status === 'db_working') {
-      allProspects = json.prospects || [];
-      filterTable();
+    const response = await fetch(`${API_BASE}/api/test-db`);
+    console.log('📡 API Response status:', response.status);
+    const data = await response.json();
+    console.log('📊 API Response data:', data);
+    if (data && data.prospects && Array.isArray(data.prospects)) {
+      console.log(`✅ Found ${data.prospects.length} prospects`);
+      allProspects = data.prospects;
+      renderProspectsTable(allProspects);
+      if (typeof updateStats === 'function') updateStats(allProspects);
+    } else {
+      console.error('❌ Invalid data format:', data);
+      allProspects = [];
     }
   } catch (error) {
-    tableBody.innerHTML = '<tr><td colspan="6">Failed to load prospects.</td></tr>';
+    console.error('💥 Load prospects error:', error);
+    allProspects = [];
   }
 }
 
@@ -144,8 +153,12 @@ modal.addEventListener('click', (e) => {
 
 // Use this for re-rendering after delete
 function renderProspectsTable(prospects) {
+  console.log('🏗️ Rendering table with prospects:', prospects.length);
+  if (prospects && prospects.length > 0) {
+    console.log('📋 Sample prospect:', prospects[0]);
+  }
   renderTable(prospects);
-  setupDeleteButtons();
+  if (typeof setupDeleteButtons === 'function') setupDeleteButtons();
 }
 
 // Add event delegation for delete buttons with debugging
@@ -196,5 +209,19 @@ async function deleteProspect(prospectId) {
   }
 }
 
-// Initial load
-loadProspects();
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 DOM loaded, loading prospects...');
+  loadProspects();
+  // Add temporary debug button
+  const debugBtn = document.createElement('button');
+  debugBtn.textContent = 'Debug Load Prospects';
+  debugBtn.style.position = 'fixed';
+  debugBtn.style.bottom = '24px';
+  debugBtn.style.right = '24px';
+  debugBtn.style.zIndex = 9999;
+  debugBtn.onclick = () => {
+    console.log('🔧 Manual prospect load triggered');
+    loadProspects();
+  };
+  document.body.appendChild(debugBtn);
+});
