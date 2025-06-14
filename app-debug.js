@@ -505,10 +505,34 @@ app.get('/api/find-prospects/:company', async (req, res) => {
     }
     req.setTimeout(300000); // 5 minutes
     console.log(`🏢 Starting prospect discovery for: ${company}`);
-    let prospects = [];
+    // STEP 1: Research company with Perplexity
+    console.log('📊 Step 1: Researching company with Perplexity...');
+    let companyProfile = {};
     try {
-      prospects = await findEquityProspects(company);
-      console.log(`🔍 Discovery completed: found ${prospects?.length || 0} prospects`);
+      const perplexityResponse = await researchCompanyAndProspects(company, []);
+      companyProfile = {
+        companyName: company,
+        stage: 'Unknown',
+        estimatedValuation: 1000000000, // Default 1B
+        equityMultiplier: 1.2,
+        perplexityResponse: perplexityResponse
+      };
+    } catch (err) {
+      console.error('⚠️ Perplexity research failed:', err.message);
+      companyProfile = {
+        companyName: company,
+        stage: 'Unknown',
+        estimatedValuation: 1000000000,
+        equityMultiplier: 1.2,
+        perplexityResponse: ''
+      };
+    }
+    // STEP 2: Find prospects with Hunter.io
+    console.log('🔍 Step 2: Finding prospects with Hunter.io...');
+    let prospectResults = { results: [] };
+    try {
+      prospectResults = await findEquityProspects(company, companyProfile);
+      console.log(`🔍 Discovery completed: found ${prospectResults?.results?.length || 0} prospects`);
     } catch (discoveryError) {
       console.error('💥 Discovery process failed:', discoveryError.message);
       return res.status(500).json({
@@ -517,22 +541,43 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         company: company
       });
     }
-    if (!prospects || prospects.length === 0) {
+    if (!prospectResults?.results || prospectResults.results.length === 0) {
       console.log('⚠️ No prospects found');
       return res.json({
         success: true,
         company: company,
         prospects_found: 0,
+        prospects_stored: 0,
         prospects: [],
         message: 'No prospects found for this company'
       });
     }
-    console.log(`✅ Search completed successfully: ${prospects.length} prospects`);
+    // STEP 3: Filter prospects
+    console.log('🔍 Step 3: Filtering for realistic sellers...');
+    const filteredProspects = prospectResults.results.filter(prospect => {
+      const isRealistic = isRealisticSeller(prospect, company);
+      const isValid = isValidProspect(prospect);
+      return isRealistic && isValid;
+    });
+    console.log(`✅ Found ${filteredProspects.length} realistic prospects`);
+    // STEP 4: Store prospects
+    console.log('💾 Step 4: Storing prospects to database...');
+    let storedCount = 0;
+    if (filteredProspects.length > 0) {
+      try {
+        storedCount = await storeProspects(filteredProspects, company, companyProfile);
+        console.log(`💾 Storage complete: ${storedCount} prospects stored`);
+      } catch (storageError) {
+        console.error('💥 Storage failed:', storageError.message);
+      }
+    }
+    console.log(`✅ Search completed successfully: ${filteredProspects.length} prospects found, ${storedCount} stored`);
     res.json({
       success: true,
       company: company,
-      prospects_found: prospects.length,
-      prospects: prospects,
+      prospects_found: filteredProspects.length,
+      prospects_stored: storedCount,
+      prospects: filteredProspects,
       processing_time: `${Date.now() - startTime}ms`
     });
   } catch (error) {
