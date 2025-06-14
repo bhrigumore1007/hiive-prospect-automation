@@ -1128,46 +1128,24 @@ function analyzeMarketConditions(companyProfile) {
 
 // Helper function to calculate equity potential score
 function calculateEquityScore(prospect, companyProfile) {
-  const title = prospect.current_job_title.toLowerCase();
-  const seniority = prospect.seniority_level || 'unknown';
-  let baseScore = 5; // Default middle score
-  
-  // Role-based scoring (equity grant likelihood)
+  console.log('🎯 CALCULATEEQUITYSCORE CALLED for:', prospect.person_name);
+  console.log('  - Input title:', prospect.current_job_title);
+  const title = (prospect.current_job_title || '').toLowerCase().trim();
+  console.log('  - Cleaned title:', title);
+  console.log('  - Includes "head":', title.includes('head'));
+  console.log('  - Includes "director":', title.includes('director'));
+  let baseScore = 5;
   if (title.includes('head') || title.includes('director')) {
-    baseScore = 8; // Senior roles get substantial equity
-  } else if (title.includes('chief') && !title.includes('ceo') && !title.includes('cfo')) {
-    baseScore = 6; // C-level but not top executives
-  } else if (title.includes('manager') || title.includes('lead')) {
-    baseScore = 6; // Management roles get good equity
-  } else if (title.includes('senior') || title.includes('staff') || title.includes('principal')) {
-    baseScore = 7; // Senior ICs get significant equity
-  } else if (title.includes('engineer') || title.includes('scientist') || title.includes('researcher')) {
-    baseScore = 6; // Technical roles get equity
-  } else if ((title.includes('product') && title.includes('manager')) || title.includes('designer') || title.includes('design')) {
-    baseScore = 6; // Product/design roles get equity
-  } else if (title.includes('administrative') || title.includes('assistant') || title.includes('coordinator')) {
-    baseScore = 3; // Support roles get minimal equity
-  } else if (title.includes('hr') || title.includes('recruiting') || title.includes('talent')) {
-    baseScore = 4; // HR roles get some equity
+    baseScore = 8;
+    console.log('  - MATCHED HEAD/DIRECTOR → baseScore:', baseScore);
+  } else if (title.includes('chief')) {
+    baseScore = 6;
+    console.log('  - MATCHED CHIEF → baseScore:', baseScore);
+  } else {
+    console.log('  - NO MATCH → using default baseScore:', baseScore);
   }
-  
-  // Seniority adjustments
-  if (seniority === 'executive') {
-    baseScore = Math.min(10, baseScore + 1);
-  } else if (seniority === 'senior') {
-    baseScore = Math.min(10, baseScore + 1);
-  }
-  
-  // Company stage multiplier
-  const stageMultiplier = companyProfile.equityMultiplier || 1.0;
-  const finalScore = Math.min(10, Math.max(1, Math.round(baseScore * stageMultiplier)));
-  
-  console.log(`📊 Equity scoring for ${prospect.person_name}:`);
-  console.log(`  Role: ${title} → Base score: ${baseScore}`);
-  console.log(`  Seniority: ${seniority}`);
-  console.log(`  Stage multiplier: ${stageMultiplier}`);
-  console.log(`  Final equity score: ${finalScore}/10`);
-  
+  const finalScore = Math.min(10, Math.max(1, Math.round(baseScore)));
+  console.log('  - FINAL CALCULATED SCORE:', finalScore);
   return finalScore;
 }
 
