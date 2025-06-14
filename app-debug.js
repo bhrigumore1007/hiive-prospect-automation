@@ -2274,3 +2274,154 @@ const extractSalesSummary = (perplexityResponse, prospectName, prospectRole, com
     return `${prospectName} represents a qualified prospect with equity potential.`;
   }
 };
+
+// EMERGENCY: Enhanced minimal processing with company analysis
+const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
+  console.log('🚨 EMERGENCY MODE: Enhanced processing with company analysis');
+  
+  // Step 1: Quick company analysis (no external API calls)
+  const companyProfile = getCompanyProfile(companyName);
+  console.log('🏢 Company Profile:', companyProfile);
+  
+  // Process only 3 prospects to minimize time
+  const prospectsToProcess = prospects.slice(0, 3);
+  console.log(`📊 Processing ${prospectsToProcess.length} prospects with company analysis`);
+  
+  const processedProspects = [];
+  
+  for (let i = 0; i < prospectsToProcess.length; i++) {
+    const prospect = prospectsToProcess[i];
+    console.log(`💾 Enhanced processing ${i+1}/${prospectsToProcess.length}: ${prospect.person_name}`);
+    
+    try {
+      // EQUITY SCORING with company multiplier
+      console.log('📊 CALCULATING EQUITY SCORE for:', prospect.person_name);
+      const title = (prospect.current_job_title || '').toLowerCase().trim();
+      
+      let baseScore = 5;
+      
+      // Enhanced scoring logic
+      if (title.includes('board') && title.includes('member')) {
+        baseScore = 9;
+        console.log('  - BOARD MEMBER → baseScore: 9');
+      } else if (title.includes('ceo') || title.includes('cto') || title.includes('cfo')) {
+        baseScore = 9;
+        console.log('  - C-LEVEL EXECUTIVE → baseScore: 9');
+      } else if (title.includes('head') || title.includes('director')) {
+        baseScore = 8;
+        console.log('  - HEAD/DIRECTOR → baseScore: 8');
+      } else if (title.includes('vp') || title.includes('vice president')) {
+        baseScore = 8;
+        console.log('  - VP LEVEL → baseScore: 8');
+      } else if (title.includes('senior') || title.includes('staff') || title.includes('principal')) {
+        baseScore = 7;
+        console.log('  - SENIOR IC → baseScore: 7');
+      } else if (title.includes('manager') || title.includes('lead')) {
+        baseScore = 6;
+        console.log('  - MANAGER/LEAD → baseScore: 6');
+      } else if (title.includes('engineer') || title.includes('scientist')) {
+        baseScore = 6;
+        console.log('  - TECHNICAL ROLE → baseScore: 6');
+      } else if (title.includes('assistant') || title.includes('coordinator')) {
+        baseScore = 3;
+        console.log('  - SUPPORT ROLE → baseScore: 3');
+      } else {
+        console.log('  - DEFAULT → baseScore: 5');
+      }
+      
+      // Apply company stage multiplier
+      const stageMultiplier = companyProfile.equityMultiplier || 1.0;
+      const equityScore = Math.min(10, Math.max(1, Math.round(baseScore * stageMultiplier)));
+      console.log('  - Stage multiplier:', stageMultiplier, '→ Final score:', equityScore);
+      
+      // DATA CONFIDENCE SCORING based on available information
+      let dataConfidence = 2; // Base confidence
+      if (prospect.person_name && prospect.person_name.includes(' ')) dataConfidence += 1; // Has full name
+      if (prospect.current_job_title && prospect.current_job_title.length > 5) dataConfidence += 1; // Has real title
+      if (prospect.email && prospect.email.includes('@')) dataConfidence += 1; // Has email
+      dataConfidence = Math.min(5, dataConfidence); // Cap at 5
+      console.log('📊 DATA CONFIDENCE:', dataConfidence, '/5 for', prospect.person_name);
+      
+      // STATUS based on equity score and confidence
+      let status = 'Needs Research';
+      if (equityScore >= 7 && dataConfidence >= 4) {
+        status = 'Qualified';
+      } else if (equityScore >= 6 && dataConfidence >= 3) {
+        status = 'Qualified';
+      }
+      console.log('📊 STATUS:', status);
+      
+      // COMPANY-SPECIFIC INTELLIGENCE (fast, no API calls)
+      const companyIntelligence = generateCompanyIntelligence(companyName, prospect, companyProfile);
+      console.log('🧠 Generated company intelligence for:', prospect.person_name);
+      
+      // Set prospect data
+      prospect.equity_score = equityScore;
+      prospect.data_confidence = dataConfidence;
+      prospect.status = status;
+      prospect.enhanced_intelligence = companyIntelligence;
+      
+      console.log('📊 FINAL SCORES:', { equity: equityScore, confidence: dataConfidence, status: status });
+      
+      // Database insert with all fields
+      const { data, error } = await supabase
+        .from('prospects')
+        .insert([{
+          person_name: prospect.person_name,
+          current_job_title: prospect.current_job_title,
+          company_name: companyName,
+          priority_score: prospect.equity_score,
+          data_confidence: prospect.data_confidence,
+          status: prospect.status,
+          enhanced_intelligence: JSON.stringify(prospect.enhanced_intelligence),
+          company_profile: JSON.stringify(companyProfile)
+        }]);
+      
+      if (error) {
+        console.log('❌ Database error for', prospect.person_name, ':', error.message);
+      } else {
+        console.log('✅ STORED:', prospect.person_name, 
+          `Equity: ${prospect.equity_score}/10,`, 
+          `Confidence: ${prospect.data_confidence}/5,`,
+          `Status: ${prospect.status}`);
+        processedProspects.push(prospect);
+      }
+    } catch (error) {
+      console.log(`❌ Failed ${prospect.person_name}:`, error.message);
+    }
+  }
+  
+  console.log(`🎉 Enhanced processing complete: ${processedProspects.length} prospects stored`);
+  return processedProspects;
+};
+
+// FAST COMPANY PROFILE FUNCTION (no API calls)
+const getCompanyProfile = (companyName) => {
+  const company = companyName.toLowerCase();
+  if (company.includes('openai')) {
+    return { stage: 'Late Stage', equityMultiplier: 1.2, marketCap: '$86B', recentFunding: '$40B Series F (April 2025)', liquidityPrograms: 'Employee tender offers confirmed', riskLevel: 'Medium - High valuation, uncertain IPO timing' };
+  } else if (company.includes('stripe')) {
+    return { stage: 'Late Stage', equityMultiplier: 1.1, marketCap: '$95B', recentFunding: 'Series I (2023)', liquidityPrograms: 'Secondary market transactions available', riskLevel: 'Low - Established revenue, clear path to IPO' };
+  } else if (company.includes('anthropic')) {
+    return { stage: 'Growth Stage', equityMultiplier: 1.0, marketCap: '$18B', recentFunding: 'Series C (2023)', liquidityPrograms: 'Limited secondary opportunities', riskLevel: 'Medium - Strong backing, competitive market' };
+  } else {
+    return { stage: 'Unknown', equityMultiplier: 1.0, marketCap: 'Not disclosed', recentFunding: 'Research pending', liquidityPrograms: 'To be determined', riskLevel: 'Unknown - Requires analysis' };
+  }
+};
+
+// FAST COMPANY INTELLIGENCE FUNCTION
+const generateCompanyIntelligence = (companyName, prospect, companyProfile) => {
+  const company = companyName.toLowerCase();
+  const name = prospect.person_name;
+  const role = prospect.current_job_title;
+  if (company.includes('openai')) {
+    return { liquidity_signals: `Current valuation: ${companyProfile.marketCap}. ${companyProfile.liquidityPrograms}. Recent ${companyProfile.recentFunding} creates new liquidity opportunities for senior employees.`, outreach_strategy: `Reference OpenAI's $40B funding when reaching out to ${name}. Given their ${role} position, emphasize the strategic timing for equity optimization and portfolio diversification.`, sales_summary: `${name}, as a ${role} at OpenAI, represents a high-priority prospect following the company's historic funding round. Strong equity potential with confirmed liquidity programs.` };
+  } else if (company.includes('stripe')) {
+    return { liquidity_signals: `Current valuation: ${companyProfile.marketCap}. ${companyProfile.liquidityPrograms}. Established fintech leader with clear path to public markets.`, outreach_strategy: `Reference Stripe's market leadership when reaching out to ${name}. Highlight the opportunity to optimize equity position ahead of potential IPO developments.`, sales_summary: `${name}, as a ${role} at Stripe, represents a qualified prospect at a mature fintech company with strong liquidity prospects and established secondary markets.` };
+  } else {
+    return { liquidity_signals: `Company stage: ${companyProfile.stage}. Recent funding: ${companyProfile.recentFunding}. Market conditions favorable for equity transactions.`, outreach_strategy: `Reference ${companyName}'s growth trajectory when reaching out to ${name}. Focus on portfolio diversification and strategic equity planning opportunities.`, sales_summary: `${name}, as a ${role} at ${companyName}, represents a potential prospect. Company analysis indicates ${companyProfile.riskLevel.toLowerCase()}.` };
+  }
+};
+
+// (Optional) If you want to replace the old storeProspects, uncomment the following line:
+// const storeProspects = storeEnhancedEmergencyProspects;
