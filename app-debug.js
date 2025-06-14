@@ -2211,3 +2211,38 @@ app.get('/api/debug/database', async (req, res) => {
     });
   }
 });
+
+// Add missing helper functions for enhanced intelligence
+const extractOutreachStrategy = (perplexityResponse, companyName, prospectName, prospectRole) => {
+  try {
+    // Extract strategy from Perplexity response
+    const strategyMatch = perplexityResponse && typeof perplexityResponse === 'string'
+      ? perplexityResponse.match(/outreach strategy[^>]*?>\s*"?(.*?)"?\s*</is)
+      : null;
+    if (strategyMatch) {
+      return strategyMatch[1].trim();
+    }
+    // Fallback: create personalized strategy
+    return `Reference ${companyName}'s recent developments when reaching out to ${prospectName}. Given their ${prospectRole} position, emphasize strategic opportunities and market timing.`;
+  } catch (error) {
+    console.log('❌ extractOutreachStrategy error:', error);
+    return `Reference company developments when reaching out to ${prospectName}.`;
+  }
+};
+
+const extractSalesSummary = (perplexityResponse, prospectName, prospectRole, companyName) => {
+  try {
+    // Extract summary from Perplexity response
+    const summaryMatch = perplexityResponse && typeof perplexityResponse === 'string'
+      ? perplexityResponse.match(/sales summary[^>]*?>\s*"?(.*?)"?\s*</is)
+      : null;
+    if (summaryMatch) {
+      return summaryMatch[1].trim();
+    }
+    // Fallback: create personalized summary
+    return `${prospectName}, as a ${prospectRole} at ${companyName}, represents a qualified prospect with significant equity potential and multiple liquidity drivers.`;
+  } catch (error) {
+    console.log('❌ extractSalesSummary error:', error);
+    return `${prospectName} represents a qualified prospect with equity potential.`;
+  }
+};
