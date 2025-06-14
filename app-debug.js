@@ -2415,12 +2415,33 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
       
       // STATUS based on equity score and confidence
       let status = 'Needs Research';
-      if (equityScore >= 7 && dataConfidence >= 4) {
+      console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+      console.log(`  - Equity Score: ${equityScore}/10 (type: ${typeof equityScore})`);
+      console.log(`  - Data Confidence: ${dataConfidence}/5 (type: ${typeof dataConfidence})`);
+
+      // Test each condition explicitly
+      const condition1 = equityScore >= 7 && dataConfidence >= 4;
+      const condition2 = equityScore >= 6 && dataConfidence >= 3;
+
+      console.log(`  - Condition 1 (≥7 equity + ≥4 confidence): ${condition1}`);
+      console.log(`    * equityScore >= 7: ${equityScore >= 7} (${equityScore} >= 7)`);
+      console.log(`    * dataConfidence >= 4: ${dataConfidence >= 4} (${dataConfidence} >= 4)`);
+
+      console.log(`  - Condition 2 (≥6 equity + ≥3 confidence): ${condition2}`);
+      console.log(`    * equityScore >= 6: ${equityScore >= 6} (${equityScore} >= 6)`);
+      console.log(`    * dataConfidence >= 3: ${dataConfidence >= 3} (${dataConfidence} >= 3)`);
+
+      if (condition1) {
         status = 'Qualified';
-      } else if (equityScore >= 6 && dataConfidence >= 3) {
+        console.log(`  ✅ QUALIFIED via Condition 1: High equity + High confidence`);
+      } else if (condition2) {
         status = 'Qualified';
+        console.log(`  ✅ QUALIFIED via Condition 2: Good equity + Good confidence`);
+      } else {
+        console.log(`  ❌ NEEDS RESEARCH: Neither condition met`);
       }
-      console.log('📊 STATUS:', status);
+
+      console.log(`  - FINAL STATUS: ${status}`);
       
       // COMPANY-SPECIFIC INTELLIGENCE
       const companyIntelligence = generateCompanyIntelligence(companyName, prospect, companyProfile);
