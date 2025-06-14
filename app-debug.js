@@ -2349,15 +2349,14 @@ const extractSalesSummary = (perplexityResponse, prospectName, prospectRole, com
   }
 };
 
-// EMERGENCY: Enhanced minimal processing with company analysis
+// Replace the entire storeEnhancedEmergencyProspects function with the following complete, fixed version:
+
 const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
   console.log('🚨 EMERGENCY MODE: Enhanced processing with company analysis');
   
-  // Step 1: Quick company analysis (no external API calls)
   const companyProfile = getCompanyProfile(companyName);
   console.log('🏢 Company Profile:', companyProfile);
   
-  // Process only 3 prospects to minimize time
   const prospectsToProcess = prospects.slice(0, 3);
   console.log(`📊 Processing ${prospectsToProcess.length} prospects with company analysis`);
   
@@ -2374,7 +2373,6 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
       
       let baseScore = 5;
       
-      // Enhanced scoring logic
       if (title.includes('board') && title.includes('member')) {
         baseScore = 9;
         console.log('  - BOARD MEMBER → baseScore: 9');
@@ -2403,17 +2401,16 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
         console.log('  - DEFAULT → baseScore: 5');
       }
       
-      // Apply company stage multiplier
       const stageMultiplier = companyProfile.equityMultiplier || 1.0;
       const equityScore = Math.min(10, Math.max(1, Math.round(baseScore * stageMultiplier)));
       console.log('  - Stage multiplier:', stageMultiplier, '→ Final score:', equityScore);
       
-      // DATA CONFIDENCE SCORING based on available information
-      let dataConfidence = 2; // Base confidence
-      if (prospect.person_name && prospect.person_name.includes(' ')) dataConfidence += 1; // Has full name
-      if (prospect.current_job_title && prospect.current_job_title.length > 5) dataConfidence += 1; // Has real title
-      if (prospect.email && prospect.email.includes('@')) dataConfidence += 1; // Has email
-      dataConfidence = Math.min(5, dataConfidence); // Cap at 5
+      // DATA CONFIDENCE SCORING
+      let dataConfidence = 2;
+      if (prospect.person_name && prospect.person_name.includes(' ')) dataConfidence += 1;
+      if (prospect.current_job_title && prospect.current_job_title.length > 5) dataConfidence += 1;
+      if (prospect.email && prospect.email.includes('@')) dataConfidence += 1;
+      dataConfidence = Math.min(5, dataConfidence);
       console.log('📊 DATA CONFIDENCE:', dataConfidence, '/5 for', prospect.person_name);
       
       // STATUS based on equity score and confidence
@@ -2425,7 +2422,7 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
       }
       console.log('📊 STATUS:', status);
       
-      // COMPANY-SPECIFIC INTELLIGENCE (fast, no API calls)
+      // COMPANY-SPECIFIC INTELLIGENCE
       const companyIntelligence = generateCompanyIntelligence(companyName, prospect, companyProfile);
       console.log('🧠 Generated company intelligence for:', prospect.person_name);
       
@@ -2437,18 +2434,19 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
       
       console.log('📊 FINAL SCORES:', { equity: equityScore, confidence: dataConfidence, status: status });
       
-      // Database insert with all fields
+      // CORRECTED DATABASE INSERT (matching Supabase schema column names)
       const { data, error } = await supabase
         .from('prospects')
         .insert([{
-          person_name: prospect.person_name,
-          current_job_title: prospect.current_job_title,
-          company_name: companyName,
-          priority_score: prospect.equity_score,
-          data_confidence: prospect.data_confidence,
-          status: prospect.status,
-          enhanced_intelligence: JSON.stringify(prospect.enhanced_intelligence),
-          company_profile: JSON.stringify(companyProfile)
+          full_name: prospect.person_name,                    // person_name → full_name
+          role_title: prospect.current_job_title,             // current_job_title → role_title  
+          company_name: companyName,                          // ✅ matches
+          prospect_type: 'seller',                            // Required field
+          priority_score: prospect.equity_score,              // ✅ matches
+          qualification_status: prospect.status,              // status → qualification_status
+          confidence_level: prospect.data_confidence,         // data_confidence → confidence_level
+          research_notes: JSON.stringify(prospect.enhanced_intelligence), // enhanced_intelligence → research_notes
+          discovery_method: 'automated'                       // Add discovery method
         }]);
       
       if (error) {
