@@ -1851,7 +1851,21 @@ function isRealisticSeller(prospect, companyName) {
     'head of design', 'head of research', 'head of ai', 'head of ml',
     'head of data', 'head of security', 'head of infrastructure',
     'head of platform', 'head of mobile', 'head of frontend',
-    'head of backend', 'head of devops', 'head of qa'
+    'head of backend', 'head of devops', 'head of qa',
+    // Expanded roles:
+    'head of people', 'head of talent', 'head of operations', 'head of business development',
+    'head of partnerships', 'head of customer success', 'head of sales', 'head of marketing',
+    'head of finance', 'head of legal', 'head of compliance', 'head of communications',
+    'head of strategy', 'head of analytics', 'head of growth', 'head of support',
+    'head of community', 'head of hr', 'head of recruiting', 'head of innovation',
+    'head of commercialization', 'head of procurement', 'head of supply chain',
+    'head of logistics', 'head of risk', 'head of privacy', 'head of content',
+    'head of brand', 'head of revenue', 'head of business operations',
+    'head of customer experience', 'head of enterprise', 'head of solutions',
+    'head of enablement', 'head of insights', 'head of learning', 'head of development',
+    'head of science', 'head of clinical', 'head of regulatory', 'head of quality',
+    'head of manufacturing', 'head of distribution', 'head of alliances', 'head of capital',
+    'head of management'
   ];
   
   // Director-level roles that are often senior ICs with equity
