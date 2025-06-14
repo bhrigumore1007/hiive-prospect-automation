@@ -97,14 +97,18 @@ discoveryForm.addEventListener('submit', async (e) => {
   discoverBtn.disabled = true;
   discoverBtn.textContent = 'Discovering...';
   try {
-    const response = await fetch(`${API_BASE}/api/find-prospects/${encodeURIComponent(company)}`);
+    const response = await fetch(`${API_BASE}/api/find-prospects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company })
+    });
     if (response.ok) {
       await loadProspects();
       companyInput.value = '';
     }
   } catch {}
-    discoverBtn.disabled = false;
-    discoverBtn.textContent = 'Discover Prospects';
+  discoverBtn.disabled = false;
+  discoverBtn.textContent = 'Discover Prospects';
 });
 
 searchInput.addEventListener('input', filterTable);
