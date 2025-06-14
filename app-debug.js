@@ -2124,40 +2124,132 @@ app.listen(PORT, () => {
 
 // POST /api/find-prospects endpoint
 app.post('/api/find-prospects', async (req, res) => {
+  const startTime = Date.now();
   console.log('🔍 Find prospects request:', req.body);
   try {
     const { company } = req.body;
     if (!company) {
       return res.status(400).json({ error: 'Company name is required' });
     }
-    console.log(`🏢 Searching for prospects at: ${company}`);
+    console.log(`🏢 Starting prospect discovery for: ${company}`);
 
-    // Use the same logic as GET endpoint
-    const companyProfile = await researchCompanyAndProspects(company, []);
-    const prospectResults = await findEquityProspects(company, companyProfile);
-    const filteredProspects = prospectResults.results.filter(prospect => {
-      const isRealistic = isRealisticSeller(prospect, company);
-      const isValid = isValidProspect(prospect);
-      return isRealistic && isValid;
-    });
-
-    let storedCount = 0;
-    if (filteredProspects.length > 0) {
-      storedCount = await storeProspects(filteredProspects, company, companyProfile);
+    // STEP 1: Find prospects with Hunter.io (NO Perplexity yet)
+    console.log('🔍 Step 1: Finding prospects with Hunter.io...');
+    let prospectResults = { results: [] };
+    try {
+      // Create minimal company profile without Perplexity
+      const basicCompanyProfile = {
+        companyName: company,
+        stage: 'Unknown',
+        estimatedValuation: 1000000000,
+        equityMultiplier: 1.2
+      };
+      
+      prospectResults = await findEquityProspects(company, basicCompanyProfile);
+      console.log(`🔍 Discovery completed: found ${prospectResults?.results?.length || 0} prospects`);
+    } catch (discoveryError) {
+      console.error('💥 Discovery process failed:', discoveryError.message);
+      return res.status(500).json({
+        error: 'Prospect discovery failed',
+        details: discoveryError.message,
+        company: company
+      });
     }
 
+    if (!prospectResults?.results || prospectResults.results.length === 0) {
+      console.log('⚠️ No prospects found');
+      return res.json({
+        success: true,
+        company: company,
+        prospects_found: 0,
+        prospects_stored: 0,
+        prospects: [],
+        message: 'No prospects found for this company'
+      });
+    }
+
+    // STEP 2: Filter prospects (with comprehensive debugging)
+    console.log('🔍 Step 2: Filtering for realistic sellers...');
+    console.log(`📊 Total prospects to filter: ${prospectResults.results.length}`);
+
+    const filteredProspects = [];
+
+    for (let i = 0; i < prospectResults.results.length; i++) {
+      const prospect = prospectResults.results[i];
+      console.log(`\n🔄 Processing prospect ${i+1}/${prospectResults.results.length}: ${prospect.person_name}`);
+      
+      try {
+        // Test isValidProspect first
+        console.log('  ⏱️ Checking isValidProspect...');
+        const isValid = isValidProspect(prospect);
+        console.log(`  ✅ isValidProspect result: ${isValid}`);
+        
+        if (!isValid) {
+          console.log(`  ❌ ${prospect.person_name} failed isValidProspect check`);
+          continue;
+        }
+        
+        // Test isRealisticSeller second
+        console.log('  ⏱️ Checking isRealisticSeller...');
+        const isRealistic = isRealisticSeller(prospect, company);
+        console.log(`  ✅ isRealisticSeller result: ${isRealistic}`);
+        
+        if (isRealistic) {
+          console.log(`  ✅ ${prospect.person_name} PASSED filtering - adding to results`);
+          filteredProspects.push(prospect);
+        } else {
+          console.log(`  ❌ ${prospect.person_name} failed isRealisticSeller check`);
+        }
+        
+      } catch (error) {
+        console.error(`  💥 Error filtering ${prospect.person_name}:`, error.message);
+        console.error(`  📍 Error stack:`, error.stack);
+      }
+      
+      // Add a small delay to prevent overwhelming the logs
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.log(`\n🎯 FILTERING COMPLETE:`);
+    console.log(`  📊 Total prospects checked: ${prospectResults.results.length}`);
+    console.log(`  ✅ Realistic prospects found: ${filteredProspects.length}`);
+    console.log(`  📋 Filtered prospects: ${filteredProspects.map(p => p.person_name).join(', ')}`);
+
+    // STEP 3: Process and store with emergency mode (single pass)
+    console.log('💾 Step 3: Processing and storing prospects...');
+    let storedCount = 0;
+    if (filteredProspects.length > 0) {
+      try {
+        // Use emergency mode - it handles ALL processing internally
+        const processedProspects = await storeEnhancedEmergencyProspects(filteredProspects, company);
+        storedCount = processedProspects.length;
+        console.log(`💾 Emergency processing complete: ${storedCount} prospects stored`);
+      } catch (storageError) {
+        console.error('💥 Emergency processing failed:', storageError.message);
+      }
+    } else {
+      console.log('⚠️ No prospects passed filtering - skipping emergency processing');
+    }
+
+    console.log(`✅ Search completed successfully: ${filteredProspects.length} prospects found, ${storedCount} stored`);
     res.json({
       success: true,
-      company: companyProfile,
+      company: company,
       prospects_found: filteredProspects.length,
       prospects_stored: storedCount,
-      prospects: filteredProspects
+      processing_time: `${Date.now() - startTime}ms`
     });
+
   } catch (error) {
-    console.error('Find prospects error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('💥 Search endpoint error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+      company: req.body?.company || 'unknown',
+      processing_time: `${Date.now() - startTime}ms`
+    });
   }
-}); // Force redeploy Fri Jun 13 16:21:37 PDT 2025
+}); // Force redeploy with systematic debugging
 
 // Add environment check endpoint
 app.get('/api/debug/env', (req, res) => {
