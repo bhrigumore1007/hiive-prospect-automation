@@ -1170,24 +1170,110 @@ function extractSpecificSignals(perplexityResponse) {
   return signals;
 }
 
-function extractOutreachStrategy(perplexityResponse, companyName) {
-  // Look for a section or bolded header
-  const strategyMatch = perplexityResponse.match(/Outreach Strategy[^\n]*\n+(.+?)(\n\n|$)/s);
+function extractOutreachStrategy(perplexityResponse, companyName, prospectName, prospectRole) {
+  let strategy = '';
+  // Try to extract specific strategy from response
+  const strategyMatch = perplexityResponse.match(/Personalized Outreach Strategy[^*]+?\*\*(.*?)\*\*/s);
   if (strategyMatch) {
-    return strategyMatch[1].replace(/\n/g, ' ').trim();
+    strategy = strategyMatch[1].trim();
+  } else {
+    // Look for strategy content after patterns like "Outreach Strategy" or "Sales Strategy"
+    const strategySection = perplexityResponse.match(/(?:Outreach Strategy|Personalized Outreach)[:\s]+(.*?)(?:\n\n|\*\*|###)/s);
+    if (strategySection) {
+      strategy = strategySection[1].trim();
+    }
   }
-  // fallback: reference company events
-  return `Reference ${companyName}'s recent funding activity and confirmed employee liquidity programs. Highlight opportunity to diversify at current private valuation before market conditions change.`;
+  // Clean up common prefixes and formatting issues
+  strategy = strategy
+    .replace(/^[-*\s]+/, '') // Remove leading dashes, asterisks, spaces
+    .replace(/^\*\*.*?\*\*\s*>?\s*"?/, '') // Remove **Sales Summary:** > " patterns
+    .replace(/^>?\s*"?/, '') // Remove leading > and quotes
+    .replace(/"?\s*$/, '') // Remove trailing quotes
+    .trim();
+  // If no strategy found or it's generic, create personalized one
+  if (!strategy || strategy.length < 50) {
+    strategy = createPersonalizedStrategy(companyName, prospectName, prospectRole);
+  }
+  console.log('🧹 Cleaned Outreach Strategy:', strategy);
+  return strategy;
 }
 
-function extractSalesSummary(perplexityResponse) {
-  // Look for a section or bolded header
-  const summaryMatch = perplexityResponse.match(/Sales Summary[^\n]*\n+(.+?)(\n\n|$)/s);
+function extractSalesSummary(perplexityResponse, prospectName, prospectRole, companyName) {
+  let summary = '';
+  // Try to extract specific summary
+  const summaryMatch = perplexityResponse.match(/Sales Summary Paragraph[^>]*?>\s*"?(.*?)"?\s*</s);
   if (summaryMatch) {
-    return summaryMatch[1].replace(/\n/g, ' ').trim();
+    summary = summaryMatch[1].trim();
+  } else {
+    // Look for summary content
+    const summarySection = perplexityResponse.match(/(?:Sales Summary)[:\s]+(.*?)(?:\n\n|\*\*|###)/s);
+    if (summarySection) {
+      summary = summarySection[1].trim();
+    }
   }
-  // fallback: extract key points
-  return `Senior employee with significant equity stake and multiple specific liquidity drivers based on recent company events and market conditions.`;
+  // Clean up formatting
+  summary = summary
+    .replace(/^[-*\s]+/, '') // Remove leading characters
+    .replace(/^\*\*.*?\*\*\s*>?\s*"?/, '') // Remove prefixes
+    .replace(/^>?\s*"?/, '') // Remove leading > and quotes
+    .replace(/"?\s*$/, '') // Remove trailing quotes
+    .trim();
+  // If no summary or contains wrong name, create personalized one
+  if (!summary || summary.length < 50 || (summary.includes('Veronica') && !prospectName.includes('Veronica'))) {
+    summary = createPersonalizedSummary(prospectName, prospectRole, companyName);
+  }
+  console.log('📊 Cleaned Sales Summary:', summary);
+  return summary;
+}
+
+function createPersonalizedStrategy(companyName, prospectName, prospectRole) {
+  const roleType = getRoleType(prospectRole);
+  const companyEvents = getCompanyEvents(companyName);
+  let strategy = `Reference ${companyName}'s recent ${companyEvents} when reaching out to ${prospectName}. `;
+  if (roleType === 'technical') {
+    strategy += `As a ${prospectRole}, highlight the technical equity optimization and portfolio diversification benefits. `;
+  } else if (roleType === 'leadership') {
+    strategy += `Given their ${prospectRole} position, emphasize strategic liquidity planning and leadership equity optimization. `;
+  } else {
+    strategy += `Focus on their role as ${prospectRole} and the specific equity opportunities available. `;
+  }
+  strategy += `Timing is crucial given current market conditions and vesting milestones.`;
+  return strategy;
+}
+
+function createPersonalizedSummary(prospectName, prospectRole, companyName) {
+  const seniorityLevel = getSeniorityLevel(prospectRole);
+  return `${prospectName}, as a ${prospectRole} at ${companyName}, represents a ${seniorityLevel} employee with significant equity potential and multiple liquidity drivers. Current market conditions and company events create optimal timing for strategic equity transactions.`;
+}
+
+function getRoleType(role) {
+  const technical = ['engineer', 'research', 'scientist', 'developer', 'architect'];
+  const leadership = ['director', 'head', 'vp', 'chief', 'principal'];
+  const roleLower = (role || '').toLowerCase();
+  if (technical.some(term => roleLower.includes(term))) return 'technical';
+  if (leadership.some(term => roleLower.includes(term))) return 'leadership';
+  return 'general';
+}
+
+function getSeniorityLevel(role) {
+  const roleLower = (role || '').toLowerCase();
+  if (roleLower.includes('head') || roleLower.includes('chief') || roleLower.includes('vp')) {
+    return 'senior leadership';
+  } else if (roleLower.includes('director') || roleLower.includes('principal')) {
+    return 'senior';
+  } else if (roleLower.includes('senior') || roleLower.includes('lead')) {
+    return 'experienced';
+  }
+  return 'mid-level';
+}
+
+function getCompanyEvents(companyName) {
+  if ((companyName || '').toLowerCase().includes('openai')) {
+    return '$40B Series F funding and upcoming employee tender offers';
+  } else if ((companyName || '').toLowerCase().includes('figma')) {
+    return 'acquisition developments and market positioning changes';
+  }
+  return 'recent funding activities and market developments';
 }
 
 // Main function to store Hunter.io prospects
@@ -1209,8 +1295,12 @@ async function storeProspects(prospects, companyName, companyProfile) {
     console.log('🔍 Raw Perplexity Response:', markdownContent);
     // Extract specific signals, outreach, and summary
     const extractedSignals = extractSpecificSignals(markdownContent);
-    const outreach = extractOutreachStrategy(markdownContent, companyName);
-    const summary = extractSalesSummary(markdownContent);
+    const prospectName = prospect.person_name || prospect.full_name;
+    const prospectRole = prospect.current_job_title || prospect.role_title;
+    // LOG PROSPECT DETAILS
+    console.log('👤 Prospect Details:', prospectName, prospectRole);
+    const outreach = extractOutreachStrategy(markdownContent, companyName, prospectName, prospectRole);
+    const summary = extractSalesSummary(markdownContent, prospectName, prospectRole, companyName);
     console.log('📊 Extracted Signals:', extractedSignals);
     enhancedIntelligence = {
       job_seniority: 'Senior level',
