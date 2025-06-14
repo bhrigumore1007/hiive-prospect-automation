@@ -1133,7 +1133,7 @@ function calculateEquityScore(prospect, companyProfile) {
   let baseScore = 5; // Default middle score
   
   // Role-based scoring (equity grant likelihood)
-  if (title.includes('head of') || title.includes('director of')) {
+  if (title.includes('head') || title.includes('director')) {
     baseScore = 8; // Senior roles get substantial equity
   } else if (title.includes('chief') && !title.includes('ceo') && !title.includes('cfo')) {
     baseScore = 6; // C-level but not top executives
@@ -1143,8 +1143,8 @@ function calculateEquityScore(prospect, companyProfile) {
     baseScore = 7; // Senior ICs get significant equity
   } else if (title.includes('engineer') || title.includes('scientist') || title.includes('researcher')) {
     baseScore = 6; // Technical roles get equity
-  } else if (title.includes('product manager') || title.includes('designer')) {
-    baseScore = 6; // Product roles get equity
+  } else if ((title.includes('product') && title.includes('manager')) || title.includes('designer') || title.includes('design')) {
+    baseScore = 6; // Product/design roles get equity
   } else if (title.includes('administrative') || title.includes('assistant') || title.includes('coordinator')) {
     baseScore = 3; // Support roles get minimal equity
   } else if (title.includes('hr') || title.includes('recruiting') || title.includes('talent')) {
