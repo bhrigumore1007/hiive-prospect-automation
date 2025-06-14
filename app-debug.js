@@ -2371,14 +2371,15 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
   const companyProfile = getCompanyProfile(companyName);
   console.log('🏢 Company Profile:', companyProfile);
   
-  const prospectsToProcess = prospects.slice(0, 3);
-  console.log(`📊 Processing ${prospectsToProcess.length} prospects with company analysis`);
+  // Remove artificial limit: process all filtered prospects
+  const prospectsToProcess = prospects; // Process all filtered prospects
+  console.log(`📊 Processing ${prospectsToProcess.length} prospects (all realistic sellers)`);
   
   const processedProspects = [];
   
   for (let i = 0; i < prospectsToProcess.length; i++) {
     const prospect = prospectsToProcess[i];
-    console.log(`💾 Enhanced processing ${i+1}/${prospectsToProcess.length}: ${prospect.person_name}`);
+    console.log(`🚀 Enhanced processing ${i+1}/${prospectsToProcess.length}: ${prospect.person_name}`);
     
     try {
       // EQUITY SCORING with company multiplier
@@ -2498,7 +2499,7 @@ const storeEnhancedEmergencyProspects = async (prospects, companyName) => {
     }
   }
   
-  console.log(`🎉 Enhanced processing complete: ${processedProspects.length} prospects stored`);
+  console.log(`✅ Emergency processing complete: ${processedProspects.length} prospects stored`);
   return processedProspects;
 };
 
