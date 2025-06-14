@@ -505,33 +505,20 @@ app.get('/api/find-prospects/:company', async (req, res) => {
     }
     req.setTimeout(300000); // 5 minutes
     console.log(`🏢 Starting prospect discovery for: ${company}`);
-    // STEP 1: Research company with Perplexity
-    console.log('📊 Step 1: Researching company with Perplexity...');
-    let companyProfile = {};
+
+    // STEP 1: Find prospects with Hunter.io (NO Perplexity yet)
+    console.log('🔍 Step 1: Finding prospects with Hunter.io...');
+    let prospectResults = { results: [] };
     try {
-      const perplexityResponse = await researchCompanyAndProspects(company, []);
-      companyProfile = {
-        companyName: company,
-        stage: 'Unknown',
-        estimatedValuation: 1000000000, // Default 1B
-        equityMultiplier: 1.2,
-        perplexityResponse: perplexityResponse
-      };
-    } catch (err) {
-      console.error('⚠️ Perplexity research failed:', err.message);
-      companyProfile = {
+      // Create minimal company profile without Perplexity
+      const basicCompanyProfile = {
         companyName: company,
         stage: 'Unknown',
         estimatedValuation: 1000000000,
-        equityMultiplier: 1.2,
-        perplexityResponse: ''
+        equityMultiplier: 1.2
       };
-    }
-    // STEP 2: Find prospects with Hunter.io
-    console.log('🔍 Step 2: Finding prospects with Hunter.io...');
-    let prospectResults = { results: [] };
-    try {
-      prospectResults = await findEquityProspects(company, companyProfile);
+      
+      prospectResults = await findEquityProspects(company, basicCompanyProfile);
       console.log(`🔍 Discovery completed: found ${prospectResults?.results?.length || 0} prospects`);
     } catch (discoveryError) {
       console.error('💥 Discovery process failed:', discoveryError.message);
@@ -541,6 +528,7 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         company: company
       });
     }
+
     if (!prospectResults?.results || prospectResults.results.length === 0) {
       console.log('⚠️ No prospects found');
       return res.json({
@@ -552,51 +540,45 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         message: 'No prospects found for this company'
       });
     }
-    // STEP 3: Filter prospects
-    console.log('🔍 Step 3: Filtering for realistic sellers...');
+
+    // STEP 2: Filter prospects (basic filtering only)
+    console.log('🔍 Step 2: Filtering for realistic sellers...');
     const filteredProspects = prospectResults.results.filter(prospect => {
       const isRealistic = isRealisticSeller(prospect, company);
       const isValid = isValidProspect(prospect);
       return isRealistic && isValid;
     });
-    // Calculate scores for each filtered prospect
-    filteredProspects.forEach(prospect => {
-      // Equity Score: log and assign
-      const eqScore = calculateEquityScore(prospect, companyProfile);
-      console.log(`[EquityScore] ${prospect.person_name} (${prospect.current_job_title}): ${eqScore}`);
-      prospect.equity_score = eqScore;
-      // Data Confidence: 5 if verified, else calculated
-      const isVerified = (prospect.linkedin_profile && prospect.linkedin_profile.includes('linkedin.com')) || (prospect.email_address && prospect.email_address.length > 0);
-      if (isVerified) {
-        prospect.confidence_level = 5;
-        console.log(`[Confidence] ${prospect.person_name}: VERIFIED (5/5)`);
-      } else {
-        const conf = calculateProspectConfidence(prospect, companyProfile, [prospect.source]);
-        prospect.confidence_level = Math.round(conf * 5);
-        console.log(`[Confidence] ${prospect.person_name}: calculated ${prospect.confidence_level}/5`);
-      }
-    });
+
     console.log(`✅ Found ${filteredProspects.length} realistic prospects`);
-    // STEP 4: Store prospects
-    console.log('💾 Step 4: Storing prospects to database...');
+
+    // STEP 3: Process and store with emergency mode (single pass)
+    console.log('💾 Step 3: Processing and storing prospects...');
     let storedCount = 0;
     if (filteredProspects.length > 0) {
       try {
-        storedCount = await storeProspects(filteredProspects, company, companyProfile);
-        console.log(`💾 Storage complete: ${storedCount} prospects stored`);
+        // Use emergency mode - it handles ALL processing internally:
+        // - Company analysis
+        // - Equity scoring  
+        // - Data confidence
+        // - Intelligence generation
+        // - Database storage
+        const processedProspects = await storeEnhancedEmergencyProspects(filteredProspects, company);
+        storedCount = processedProspects.length;
+        console.log(`💾 Emergency processing complete: ${storedCount} prospects stored`);
       } catch (storageError) {
-        console.error('💥 Storage failed:', storageError.message);
+        console.error('💥 Emergency processing failed:', storageError.message);
       }
     }
+
     console.log(`✅ Search completed successfully: ${filteredProspects.length} prospects found, ${storedCount} stored`);
     res.json({
       success: true,
       company: company,
       prospects_found: filteredProspects.length,
       prospects_stored: storedCount,
-      prospects: filteredProspects,
       processing_time: `${Date.now() - startTime}ms`
     });
+
   } catch (error) {
     console.error('💥 Search endpoint error:', error);
     res.status(500).json({
@@ -2422,6 +2404,3 @@ const generateCompanyIntelligence = (companyName, prospect, companyProfile) => {
     return { liquidity_signals: `Company stage: ${companyProfile.stage}. Recent funding: ${companyProfile.recentFunding}. Market conditions favorable for equity transactions.`, outreach_strategy: `Reference ${companyName}'s growth trajectory when reaching out to ${name}. Focus on portfolio diversification and strategic equity planning opportunities.`, sales_summary: `${name}, as a ${role} at ${companyName}, represents a potential prospect. Company analysis indicates ${companyProfile.riskLevel.toLowerCase()}.` };
   }
 };
-
-// (Optional) If you want to replace the old storeProspects, uncomment the following line:
-// const storeProspects = storeEnhancedEmergencyProspects;
