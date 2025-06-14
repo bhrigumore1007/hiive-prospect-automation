@@ -477,62 +477,32 @@ async function findEquityProspects(companyName, companyProfile) {
 // Update the main API endpoint
 app.get('/api/find-prospects/:company', async (req, res) => {
   try {
-    const companyName = req.params.company;
-    console.log(`\n=== PROSPECT DISCOVERY FOR ${companyName} ===`);
-    
-    // Research company fundamentals with Perplexity
-    console.log('\n🔍 Researching company fundamentals...');
-    const companyProfile = await researchCompanyAndProspects(companyName, []);
-    
-    // Find prospects using Hunter.io
-    console.log('\n🔍 Finding real prospects...');
-    const prospectResults = await findEquityProspects(companyName, companyProfile);
-    
-    // Filter for realistic equity sellers
-    console.log('\n🔍 Filtering for realistic equity sellers...');
-    const filteredProspects = prospectResults.results.filter(prospect => {
-      const isRealistic = isRealisticSeller(prospect, companyName);
-      const isValid = isValidProspect(prospect);
-      
-      console.log(`\n📊 Evaluating ${prospect.person_name}:`);
-      console.log(`  isRealisticSeller: ${isRealistic ? '✅' : '❌'}`);
-      console.log(`  isValidProspect: ${isValid ? '✅' : '❌'}`);
-      
-      return isRealistic && isValid;
-    });
-    
-    console.log(`\n✅ Found ${filteredProspects.length} realistic equity prospects`);
-    
-    // Store valid prospects
-    let storedCount = 0;
-    if (filteredProspects.length > 0) {
-      console.log(`\n💾 Attempting to store ${filteredProspects.length} prospects...`);
-      storedCount = await storeProspects(filteredProspects, companyName, companyProfile);
-      console.log(`\n✅ Successfully stored ${storedCount}/${filteredProspects.length} prospects`);
-    } else {
-      console.log(`\n❌ No prospects to store after filtering`);
+    console.log('🔍 Find prospects request for:', req.params.company);
+    const company = req.params.company;
+    if (!company) {
+      return res.status(400).json({ error: 'Company name is required' });
     }
-    
-    // Return results
+    console.log(`🏢 Searching for prospects at: ${company}`);
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), 300000) // 5 minutes
+    );
+    const searchPromise = findEquityProspects(company);
+    const prospects = await Promise.race([searchPromise, timeoutPromise]);
+    console.log(`✅ Search completed: found ${prospects.length} prospects`);
     res.json({
       success: true,
-      company: companyProfile,
-      prospects_found: filteredProspects.length,
-      prospects_stored: storedCount,
-      prospects: filteredProspects,
-      storage_summary: {
-        total_found: filteredProspects.length,
-        successfully_stored: storedCount,
-        failed: filteredProspects.length - storedCount
-      }
+      company: company,
+      prospects_found: prospects.length,
+      prospects: prospects
     });
-    
   } catch (error) {
-    console.error('❌ Prospect discovery error:', error);
+    console.error('💥 Find prospects error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Failed to discover prospects',
-      details: error.message
+      error: 'Internal server error',
+      details: error.message,
+      company: req.params.company,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -2221,3 +2191,66 @@ app.post('/api/find-prospects', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 }); // Force redeploy Fri Jun 13 16:21:37 PDT 2025
+
+// Add environment check endpoint
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    supabase_url: process.env.SUPABASE_URL ? 'configured' : 'missing',
+    supabase_key: process.env.SUPABASE_ANON_KEY ? 'configured' : 'missing',
+    hunter_key: process.env.HUNTER_API_KEY ? 'configured' : 'missing',
+    perplexity_key: process.env.PERPLEXITY_API_KEY ? 'configured' : 'missing',
+    node_env: process.env.NODE_ENV || 'not set'
+  });
+});
+
+// Add comprehensive database debugging endpoint
+app.get('/api/debug/database', async (req, res) => {
+  try {
+    console.log('🔍 Testing database connection...');
+    // Test basic connection
+    const { data: testData, error: testError } = await supabase
+      .from('prospects')
+      .select('id, full_name, company_name')
+      .limit(5);
+    if (testError) {
+      console.error('❌ Database connection error:', testError);
+      return res.json({
+        status: 'error',
+        error: testError.message,
+        supabase_url: process.env.SUPABASE_URL ? 'present' : 'missing',
+        supabase_key: process.env.SUPABASE_ANON_KEY ? 'present' : 'missing'
+      });
+    }
+    // Get total count
+    const { count, error: countError } = await supabase
+      .from('prospects')
+      .select('*', { count: 'exact', head: true });
+    // Get recent prospects
+    const { data: recentData, error: recentError } = await supabase
+      .from('prospects')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    console.log('✅ Database test successful');
+    console.log('📊 Total prospects:', count);
+    console.log('📋 Recent prospects:', recentData?.length || 0);
+    res.json({
+      status: 'success',
+      total_prospects: count,
+      recent_prospects: recentData?.length || 0,
+      sample_data: testData,
+      recent_data: recentData?.map(p => ({
+        id: p.id,
+        name: p.full_name,
+        company: p.company_name,
+        created: p.created_at
+      }))
+    });
+  } catch (error) {
+    console.error('💥 Database debug error:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message
+    });
+  }
+});
