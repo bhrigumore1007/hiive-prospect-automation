@@ -1831,7 +1831,8 @@ function isRealisticSeller(prospect, companyName) {
     'founder', 'co-founder',
     'president', 
     'vice president', 'vp ',
-    'svp', 'senior vice president'
+    'svp', 'senior vice president',
+    'chief' // Exclude all C-suite roles
   ];
   
   // Technical roles that are realistic sellers
