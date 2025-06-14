@@ -7,6 +7,26 @@ import fetch from 'node-fetch';
 console.log('🔍 Loading environment...');
 const app = express();
 
+// CORS middleware - CRITICAL FOR FRONTEND COMMUNICATION
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// CORS test endpoint
+app.get('/api/cors-test', (req, res) => {
+  res.json({
+    message: 'CORS is working!',
+    origin: req.headers.origin,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Initialize Supabase
 console.log('🔌 Connecting to Supabase...');
 const supabase = createClient(
@@ -2127,25 +2147,4 @@ app.get('/api/debug/database', async (req, res) => {
       error: error.message
     });
   }
-});
-
-// Enable CORS for all routes (quick fix)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
-// CORS test endpoint
-app.get('/api/cors-test', (req, res) => {
-  res.json({
-    message: 'CORS is working!',
-    origin: req.headers.origin,
-    timestamp: new Date().toISOString()
-  });
 });
