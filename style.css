@@ -633,14 +633,23 @@ body {
   background: #fef3c7 !important;
 }
 .liquidity-signals ul {
+  list-style: none;
   margin: 8px 0 0 0;
-  padding-left: 16px;
+  padding-left: 0;
 }
 .liquidity-signals li {
   font-size: 13px;
   line-height: 1.4;
   margin-bottom: 6px;
   color: #92400e;
+  list-style-type: none;
+}
+.liquidity-signals-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #92400e;
+  margin: 8px 0 0 0;
+  padding: 0;
 }
 .outreach-strategy {
   background: #f0fdf4 !important;
@@ -659,4 +668,53 @@ body {
   line-height: 1.5;
   color: #1e40af;
   margin: 8px 0 0 0;
+}
+
+.modal-header {
+  margin-bottom: 20px;
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #424242;
+  margin: 0 0 4px 0;
+}
+.modal-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+.modal-header-badges {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.modal-status-badge.qualified {
+  background: #66a16f;
+  color: #fff;
+}
+.modal-status-badge.needs-research {
+  background: #d47d62;
+  color: #fff;
+}
+.modal-liquidity-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #fef3c7;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #92400e;
 }

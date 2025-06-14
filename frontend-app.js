@@ -134,25 +134,22 @@ function showProspectModal(prospect) {
     research = prospect.research_notes ? JSON.parse(prospect.research_notes) : null;
   } catch {}
   const enhanced = research && research.enhanced_intelligence ? research.enhanced_intelligence : {};
-  // Modal header: Name, company, title, status badge, liquidity score
-  const statusBadge = prospect.qualification_status === 'qualified'
-    ? '<span class="hiive-badge hiive-badge-success">✓ Qualified</span>'
-    : '<span class="hiive-badge hiive-badge-warning">&#9888; Needs Research</span>';
+  // Status badge class
+  const statusClass = prospect.qualification_status === 'qualified' ? 'qualified' : 'needs-research';
+  // Status badge text
+  const statusText = prospect.qualification_status === 'qualified' ? 'Qualified' : 'Needs Research';
   // Liquidity score visual
   let liquidityScore = enhanced.liquidity_score || enhanced.liquidityScore || null;
   let liquidityLevel = 'medium';
   if (liquidityScore >= 8) liquidityLevel = 'high';
   else if (liquidityScore <= 5) liquidityLevel = 'low';
-  const liquidityDot = `<span class="hiive-liquidity-dot hiive-liquidity-dot-${liquidityLevel}"></span>`;
-  // Header section
-  let html = `<div class="hiive-modal-header">
-    <div>
-      <div class="hiive-modal-title">${prospect.full_name || ''}</div>
-      <div class="hiive-modal-subtitle">${prospect.company_name || ''} &mdash; ${prospect.role_title || ''}</div>
-      <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-        ${statusBadge}
-        <span class="hiive-liquidity-score">${liquidityDot} Liquidity Score: <b>${liquidityScore !== null ? liquidityScore : 'N/A'}</b></span>
-      </div>
+  // Modal header
+  let html = `<div class="modal-header">
+    <h2 class="modal-title">${prospect.full_name || ''}</h2>
+    <p class="modal-subtitle">${prospect.company_name || ''} &mdash; ${prospect.role_title || ''}</p>
+    <div class="modal-header-badges">
+      <span class="modal-status-badge ${statusClass}">✓ ${statusText}</span>
+      <span class="modal-liquidity-score">🟡 Liquidity Score: ${liquidityScore !== null ? liquidityScore : 'N/A'}</span>
     </div>
   </div>`;
   // Basic Info Card (2-column grid)
@@ -162,12 +159,12 @@ function showProspectModal(prospect) {
       <div class="modal-info-item"><span class="modal-info-label">Name</span><span class="modal-info-value">${prospect.full_name || ''}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Title</span><span class="modal-info-value">${prospect.role_title || ''}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Company</span><span class="modal-info-value">${prospect.company_name || ''}</span></div>
-      <div class="modal-info-item"><span class="modal-info-label">Status</span><span class="modal-info-value">${prospect.qualification_status === 'qualified' ? 'Qualified' : 'Needs Research'}</span></div>
+      <div class="modal-info-item"><span class="modal-info-label">Status</span><span class="modal-info-value">${statusText}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Equity Score</span><span class="modal-info-value">${prospect.priority_score || 'N/A'}/10</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Data Confidence</span><span class="modal-info-value">${prospect.confidence_level || 'N/A'}/5</span></div>
     </div>
   </div></div>`;
-  // Equity Analysis Card (2-column grid)
+  // Equity Analysis Card (2-column grid, 4 fields)
   html += `<div class="hiive-modal-section"><div class="modal-card">
     <div class="modal-card-header"><i data-lucide='briefcase'></i> Equity Analysis</div>
     <div class="equity-analysis-grid">
@@ -175,7 +172,6 @@ function showProspectModal(prospect) {
       <div class="modal-info-item"><span class="modal-info-label">Estimated Tenure</span><span class="modal-info-value">${enhanced.estimated_tenure || 'N/A'}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Equity Value</span><span class="modal-info-value">${enhanced.estimated_equity_value || 'N/A'}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Preferred Channel</span><span class="modal-info-value">${enhanced.preferred_channel || 'N/A'}</span></div>
-      <div class="modal-info-item"><span class="modal-info-label">KYC Status</span><span class="modal-info-value">${enhanced.kyc_status || 'N/A'}</span></div>
     </div>
   </div></div>`;
   // Liquidity Signals Card
@@ -186,9 +182,7 @@ function showProspectModal(prospect) {
   if (!Array.isArray(signals)) signals = [signals];
   html += `<div class="hiive-modal-section"><div class="modal-card liquidity-signals">
     <div class="modal-card-header"><i data-lucide='zap'></i> Liquidity Signals</div>
-    <ul>
-      ${signals.filter(Boolean).map(s => `<li>${s}</li>`).join('') || '<li style="color:#888;">No signals found</li>'}
-    </ul>
+    <p class="liquidity-signals-text">${signals.filter(Boolean).join(" ") || "No signals found"}</p>
   </div></div>`;
   // Outreach Strategy Card
   html += `<div class="hiive-modal-section"><div class="modal-card outreach-strategy">
@@ -220,7 +214,7 @@ function renderProspectsTable(prospects) {
   console.log('🏗️ Rendering table with prospects:', prospects.length);
   if (prospects && prospects.length > 0) {
     console.log('📋 Sample prospect:', prospects[0]);
-  }
+      }
   renderTable(prospects);
   if (typeof setupDeleteButtons === 'function') setupDeleteButtons();
 }
@@ -255,7 +249,7 @@ async function deleteProspect(prospectId) {
   if (!prospectId) {
     console.error('No prospect ID provided');
           return;
-  }
+        }
   try {
     const response = await fetch(`${API_BASE}/api/prospects/${prospectId}`, {
       method: 'DELETE'
