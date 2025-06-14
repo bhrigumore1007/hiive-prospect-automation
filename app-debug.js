@@ -1130,25 +1130,88 @@ function analyzeMarketConditions(companyProfile) {
 function calculateEquityScore(prospect, companyProfile) {
   console.log('🎯 CALCULATEEQUITYSCORE CALLED for:', prospect.person_name);
   console.log('  - Input title:', prospect.current_job_title);
+  
   const title = (prospect.current_job_title || '').toLowerCase().trim();
   console.log('  - Cleaned title:', title);
-  console.log('  - Includes "head":', title.includes('head'));
-  console.log('  - Includes "director":', title.includes('director'));
-  let baseScore = 5;
-  if (title.includes('head') || title.includes('director')) {
+  
+  let baseScore = 5; // Default middle score
+  
+  // BOARD MEMBERS - Highest equity potential
+  if (title.includes('board') && title.includes('member')) {
+    baseScore = 9;
+    console.log('  - MATCHED BOARD MEMBER → baseScore:', baseScore);
+  }
+  // C-LEVEL EXECUTIVES - Very high equity
+  else if (title.includes('ceo') || title.includes('cto') || title.includes('cfo') || title.includes('chief')) {
+    if (title.includes('ceo') || title.includes('cto') || title.includes('cfo')) {
+      baseScore = 9; // Top executives
+      console.log('  - MATCHED CEO/CTO/CFO → baseScore:', baseScore);
+    } else {
+      baseScore = 8; // Other C-level
+      console.log('  - MATCHED OTHER C-LEVEL → baseScore:', baseScore);
+    }
+  }
+  // VP LEVEL - High equity
+  else if (title.includes('vp') || title.includes('vice president')) {
+    baseScore = 8;
+    console.log('  - MATCHED VP → baseScore:', baseScore);
+  }
+  // HEAD/DIRECTOR LEVEL - High equity  
+  else if (title.includes('head') || title.includes('director')) {
     baseScore = 8;
     console.log('  - MATCHED HEAD/DIRECTOR → baseScore:', baseScore);
-  } else if (title.includes('chief') && !title.includes('ceo') && !title.includes('cfo')) {
-    baseScore = 6;
-    console.log('  - MATCHED CHIEF → baseScore:', baseScore);
-  } else if (title.includes('manager') || title.includes('lead')) {
+  }
+  // SENIOR INDIVIDUAL CONTRIBUTORS - Good equity
+  else if (title.includes('senior') || title.includes('staff') || title.includes('principal')) {
+    baseScore = 7;
+    console.log('  - MATCHED SENIOR IC → baseScore:', baseScore);
+  }
+  // MANAGERS/LEADS - Moderate equity
+  else if (title.includes('manager') || title.includes('lead')) {
     baseScore = 6;
     console.log('  - MATCHED MANAGER/LEAD → baseScore:', baseScore);
-  } else {
+  }
+  // TECHNICAL ROLES - Moderate equity
+  else if (title.includes('engineer') || title.includes('scientist') || title.includes('researcher')) {
+    baseScore = 6;
+    console.log('  - MATCHED TECHNICAL ROLE → baseScore:', baseScore);
+  }
+  // PRODUCT/DESIGN - Moderate equity
+  else if ((title.includes('product') && title.includes('manager')) || title.includes('designer') || title.includes('design')) {
+    baseScore = 6;
+    console.log('  - MATCHED PRODUCT/DESIGN → baseScore:', baseScore);
+  }
+  // SUPPORT ROLES - Lower equity
+  else if (title.includes('administrative') || title.includes('assistant') || title.includes('coordinator')) {
+    baseScore = 3;
+    console.log('  - MATCHED SUPPORT ROLE → baseScore:', baseScore);
+  }
+  // HR/RECRUITING - Lower equity
+  else if (title.includes('hr') || title.includes('recruiting') || title.includes('talent')) {
+    baseScore = 4;
+    console.log('  - MATCHED HR/RECRUITING → baseScore:', baseScore);
+  }
+  else {
     console.log('  - NO MATCH → using default baseScore:', baseScore);
   }
-  const finalScore = Math.min(10, Math.max(1, Math.round(baseScore)));
+  
+  // Seniority adjustments (existing logic)
+  const seniority = prospect.seniority_level || 'unknown';
+  if (seniority === 'executive') {
+    baseScore = Math.min(10, baseScore + 1);
+    console.log('  - Executive bonus → baseScore:', baseScore);
+  } else if (seniority === 'senior') {
+    baseScore = Math.min(10, baseScore + 1);
+    console.log('  - Senior bonus → baseScore:', baseScore);
+  }
+  
+  // Company stage multiplier
+  const stageMultiplier = companyProfile?.equityMultiplier || 1.0;
+  console.log('  - Stage multiplier:', stageMultiplier);
+  
+  const finalScore = Math.min(10, Math.max(1, Math.round(baseScore * stageMultiplier)));
   console.log('  - FINAL CALCULATED SCORE:', finalScore);
+  
   return finalScore;
 }
 
