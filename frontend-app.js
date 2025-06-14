@@ -107,8 +107,8 @@ discoveryForm.addEventListener('submit', async (e) => {
       companyInput.value = '';
     }
   } catch {}
-  discoverBtn.disabled = false;
-  discoverBtn.textContent = 'Discover Prospects';
+    discoverBtn.disabled = false;
+    discoverBtn.textContent = 'Discover Prospects';
 });
 
 searchInput.addEventListener('input', filterTable);
@@ -133,9 +133,9 @@ tableBody.addEventListener('click', async (e) => {
 });
 
 function showProspectModal(prospect) {
-  let research = null;
-  try {
-    research = prospect.research_notes ? JSON.parse(prospect.research_notes) : null;
+    let research = null;
+    try {
+      research = prospect.research_notes ? JSON.parse(prospect.research_notes) : null;
   } catch {}
   const enhanced = research && research.enhanced_intelligence ? research.enhanced_intelligence : {};
   // Status badge class
@@ -154,7 +154,7 @@ function showProspectModal(prospect) {
     <div class="modal-header-badges">
       <span class="modal-status-badge ${statusClass}">✓ ${statusText}</span>
       <span class="modal-liquidity-score">🟡 Liquidity Score: ${liquidityScore !== null ? liquidityScore : 'N/A'}</span>
-    </div>
+        </div>
   </div>`;
   // Basic Info Card (2-column grid)
   html += `<div class="hiive-modal-section"><div class="modal-card">
@@ -166,7 +166,7 @@ function showProspectModal(prospect) {
       <div class="modal-info-item"><span class="modal-info-label">Status</span><span class="modal-info-value">${statusText}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Equity Score</span><span class="modal-info-value">${prospect.priority_score || 'N/A'}/10</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Data Confidence</span><span class="modal-info-value">${prospect.confidence_level || 'N/A'}/5</span></div>
-    </div>
+      </div>
   </div></div>`;
   // Equity Analysis Card (2-column grid, 4 fields)
   html += `<div class="hiive-modal-section"><div class="modal-card">
@@ -176,7 +176,7 @@ function showProspectModal(prospect) {
       <div class="modal-info-item"><span class="modal-info-label">Estimated Tenure</span><span class="modal-info-value">${enhanced.estimated_tenure || 'N/A'}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Equity Value</span><span class="modal-info-value">${enhanced.estimated_equity_value || 'N/A'}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Preferred Channel</span><span class="modal-info-value">${enhanced.preferred_channel || 'N/A'}</span></div>
-    </div>
+          </div>
   </div></div>`;
   // Liquidity Signals Card
   let signals = enhanced.liquidity_signals || [];

@@ -559,6 +559,11 @@ app.get('/api/find-prospects/:company', async (req, res) => {
       const isValid = isValidProspect(prospect);
       return isRealistic && isValid;
     });
+    // Calculate scores for each filtered prospect
+    filteredProspects.forEach(prospect => {
+      prospect.equity_score = calculateEquityScore(prospect, companyProfile);
+      prospect.confidence_level = calculateProspectConfidence(prospect, companyProfile, [prospect.source]);
+    });
     console.log(`✅ Found ${filteredProspects.length} realistic prospects`);
     // STEP 4: Store prospects
     console.log('💾 Step 4: Storing prospects to database...');
