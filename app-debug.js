@@ -1131,6 +1131,65 @@ function extractLiquiditySignals(content) {
   return signals.length > 0 ? signals.join('; ') : 'Multiple liquidity drivers identified';
 }
 
+// Add helper function to extract specific liquidity signals
+function extractSpecificSignals(perplexityResponse) {
+  const signals = [];
+  // Funding rounds
+  const fundingMatch = perplexityResponse.match(/\$(\d+[\w\s\.,]+) Series ([A-Z])[,\s]+\(([^)]+)\)/i) || perplexityResponse.match(/\$(\d+[\w\s\.,]+) Series ([A-Z])/i);
+  if (fundingMatch) {
+    const amount = fundingMatch[1];
+    const series = fundingMatch[2];
+    const date = fundingMatch[3] ? ` (${fundingMatch[3]})` : '';
+    signals.push(`Recent $${amount} Series ${series}${date} funding creates new liquidity opportunities`);
+  }
+  // Valuation
+  if (/\$\d+[\w\s\.,]+ valuation/i.test(perplexityResponse)) {
+    const valMatch = perplexityResponse.match(/\$(\d+[\w\s\.,]+) valuation/i);
+    if (valMatch) signals.push(`Current valuation: $${valMatch[1]}`);
+  }
+  // Tender offers/secondary
+  if (/CFO confirmed.*tender offers/i.test(perplexityResponse) || /tender offers/i.test(perplexityResponse)) {
+    signals.push('CFO confirmed additional employee tender offers and secondary liquidity windows');
+  }
+  // Employee growth
+  if (/\d{1,3},\d{3} employees/i.test(perplexityResponse) && /\d+% growth/i.test(perplexityResponse)) {
+    const empMatch = perplexityResponse.match(/(\d{1,3},\d{3}) employees/);
+    const growthMatch = perplexityResponse.match(/(\d+)% growth/);
+    if (empMatch && growthMatch) signals.push(`Rapid employee growth (${growthMatch[1]}% in one year) indicates company scaling, not restructuring`);
+  }
+  // Vesting
+  if (/4\+ years/i.test(perplexityResponse) && /fully vested/i.test(perplexityResponse)) {
+    signals.push('Employees with 4+ years tenure likely fully vested and eligible for liquidity programs');
+  }
+  // fallback: extract any bullet points under "Liquidity Signals" section
+  const sectionMatch = perplexityResponse.match(/Liquidity Signals[^\n]*\n([-*].+?)(\n\n|$)/s);
+  if (sectionMatch) {
+    const bullets = sectionMatch[1].split(/\n/).map(l => l.replace(/^[-*]\s*/, '').trim()).filter(Boolean);
+    signals.push(...bullets);
+  }
+  return signals;
+}
+
+function extractOutreachStrategy(perplexityResponse, companyName) {
+  // Look for a section or bolded header
+  const strategyMatch = perplexityResponse.match(/Outreach Strategy[^\n]*\n+(.+?)(\n\n|$)/s);
+  if (strategyMatch) {
+    return strategyMatch[1].replace(/\n/g, ' ').trim();
+  }
+  // fallback: reference company events
+  return `Reference ${companyName}'s recent funding activity and confirmed employee liquidity programs. Highlight opportunity to diversify at current private valuation before market conditions change.`;
+}
+
+function extractSalesSummary(perplexityResponse) {
+  // Look for a section or bolded header
+  const summaryMatch = perplexityResponse.match(/Sales Summary[^\n]*\n+(.+?)(\n\n|$)/s);
+  if (summaryMatch) {
+    return summaryMatch[1].replace(/\n/g, ' ').trim();
+  }
+  // fallback: extract key points
+  return `Senior employee with significant equity stake and multiple specific liquidity drivers based on recent company events and market conditions.`;
+}
+
 // Main function to store Hunter.io prospects
 async function storeProspects(prospects, companyName, companyProfile) {
   let storedCount = 0;
@@ -1146,23 +1205,27 @@ async function storeProspects(prospects, companyName, companyProfile) {
   } catch (error) {
     console.log('Response is not JSON, extracting from markdown...');
     const markdownContent = enhancedResearchRaw;
-    
+    // LOG RAW RESPONSE FOR DEBUGGING
+    console.log('🔍 Raw Perplexity Response:', markdownContent);
+    // Extract specific signals, outreach, and summary
+    const extractedSignals = extractSpecificSignals(markdownContent);
+    const outreach = extractOutreachStrategy(markdownContent, companyName);
+    const summary = extractSalesSummary(markdownContent);
+    console.log('📊 Extracted Signals:', extractedSignals);
     enhancedIntelligence = {
       job_seniority: 'Senior level',
       estimated_tenure: '2-4 years',
       employment_status: 'Current',
       estimated_equity_value: markdownContent.includes('$500K–$1.5M') ? '$500K-$1.5M' : '0.05-0.15%',
       preferred_channel: markdownContent.includes('LinkedIn') ? 'LinkedIn' : 'Email',
-      
-      // Enhanced liquidity signals extraction
-      liquidity_signals: extractLiquiditySignals(markdownContent),
-      
+      liquidity_signals: extractedSignals,
       kyc_status: 'Accredited investor verification required',
       equity_likelihood: markdownContent.includes('High') ? 'High' : 'Medium',
       liquidity_score: markdownContent.includes('8/10') ? 8 : 7,
-      outreach_strategy: 'Reference specific company events and vesting milestones to create urgency and relevance',
-      sales_summary: 'Senior employee with significant equity stake and multiple liquidity drivers.'
+      outreach_strategy: outreach,
+      sales_summary: summary
     };
+    console.log('💾 Final Enhanced Intelligence:', enhancedIntelligence);
   }
 
   for (const prospect of prospects) {
