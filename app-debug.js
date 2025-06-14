@@ -561,8 +561,20 @@ app.get('/api/find-prospects/:company', async (req, res) => {
     });
     // Calculate scores for each filtered prospect
     filteredProspects.forEach(prospect => {
-      prospect.equity_score = calculateEquityScore(prospect, companyProfile);
-      prospect.confidence_level = calculateProspectConfidence(prospect, companyProfile, [prospect.source]);
+      // Equity Score: log and assign
+      const eqScore = calculateEquityScore(prospect, companyProfile);
+      console.log(`[EquityScore] ${prospect.person_name} (${prospect.current_job_title}): ${eqScore}`);
+      prospect.equity_score = eqScore;
+      // Data Confidence: 5 if verified, else calculated
+      const isVerified = (prospect.linkedin_profile && prospect.linkedin_profile.includes('linkedin.com')) || (prospect.email_address && prospect.email_address.length > 0);
+      if (isVerified) {
+        prospect.confidence_level = 5;
+        console.log(`[Confidence] ${prospect.person_name}: VERIFIED (5/5)`);
+      } else {
+        const conf = calculateProspectConfidence(prospect, companyProfile, [prospect.source]);
+        prospect.confidence_level = Math.round(conf * 5);
+        console.log(`[Confidence] ${prospect.person_name}: calculated ${prospect.confidence_level}/5`);
+      }
     });
     console.log(`✅ Found ${filteredProspects.length} realistic prospects`);
     // STEP 4: Store prospects
