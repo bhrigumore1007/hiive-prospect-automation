@@ -2274,23 +2274,26 @@ app.get('/api/debug/database', async (req, res) => {
   }
 });
 
-// Enable CORS for all routes (quick fix)
+// CORS middleware - ADD THIS SECTION
 app.use((req, res, next) => {
+  // Allow all origins for now (can restrict later)
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+    return res.sendStatus(200);
   }
+  next();
 });
+// END CORS middleware
 
 // CORS test endpoint
 app.get('/api/cors-test', (req, res) => {
   res.json({
     message: 'CORS is working!',
     origin: req.headers.origin,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    success: true
   });
 });
