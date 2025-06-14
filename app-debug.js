@@ -1120,151 +1120,6 @@ function extractLiquiditySignals(content) {
   return signals.length > 0 ? signals.join('; ') : 'Multiple liquidity drivers identified';
 }
 
-// Add helper function to extract specific liquidity signals
-function extractSpecificSignals(perplexityResponse) {
-  const signals = [];
-  // Funding rounds
-  const fundingMatch = perplexityResponse.match(/\$(\d+[\w\s\.,]+) Series ([A-Z])[,\s]+\(([^)]+)\)/i) || perplexityResponse.match(/\$(\d+[\w\s\.,]+) Series ([A-Z])/i);
-  if (fundingMatch) {
-    const amount = fundingMatch[1];
-    const series = fundingMatch[2];
-    const date = fundingMatch[3] ? ` (${fundingMatch[3]})` : '';
-    signals.push(`Recent $${amount} Series ${series}${date} funding creates new liquidity opportunities`);
-  }
-  // Valuation
-  if (/\$\d+[\w\s\.,]+ valuation/i.test(perplexityResponse)) {
-    const valMatch = perplexityResponse.match(/\$(\d+[\w\s\.,]+) valuation/i);
-    if (valMatch) signals.push(`Current valuation: $${valMatch[1]}`);
-  }
-  // Tender offers/secondary
-  if (/CFO confirmed.*tender offers/i.test(perplexityResponse) || /tender offers/i.test(perplexityResponse)) {
-    signals.push('CFO confirmed additional employee tender offers and secondary liquidity windows');
-  }
-  // Employee growth
-  if (/\d{1,3},\d{3} employees/i.test(perplexityResponse) && /\d+% growth/i.test(perplexityResponse)) {
-    const empMatch = perplexityResponse.match(/(\d{1,3},\d{3}) employees/);
-    const growthMatch = perplexityResponse.match(/(\d+)% growth/);
-    if (empMatch && growthMatch) signals.push(`Rapid employee growth (${growthMatch[1]}% in one year) indicates company scaling, not restructuring`);
-  }
-  // Vesting
-  if (/4\+ years/i.test(perplexityResponse) && /fully vested/i.test(perplexityResponse)) {
-    signals.push('Employees with 4+ years tenure likely fully vested and eligible for liquidity programs');
-  }
-  // fallback: extract any bullet points under "Liquidity Signals" section
-  const sectionMatch = perplexityResponse.match(/Liquidity Signals[^\n]*\n([-*].+?)(\n\n|$)/s);
-  if (sectionMatch) {
-    const bullets = sectionMatch[1].split(/\n/).map(l => l.replace(/^[-*]\s*/, '').trim()).filter(Boolean);
-    signals.push(...bullets);
-  }
-  return signals;
-}
-
-function extractOutreachStrategy(perplexityResponse, companyName, prospectName, prospectRole) {
-  let strategy = '';
-  // Try to extract specific strategy from response
-  const strategyMatch = perplexityResponse.match(/Personalized Outreach Strategy[^*]+?\*\*(.*?)\*\*/s);
-  if (strategyMatch) {
-    strategy = strategyMatch[1].trim();
-  } else {
-    // Look for strategy content after patterns like "Outreach Strategy" or "Sales Strategy"
-    const strategySection = perplexityResponse.match(/(?:Outreach Strategy|Personalized Outreach)[:\s]+(.*?)(?:\n\n|\*\*|###)/s);
-    if (strategySection) {
-      strategy = strategySection[1].trim();
-    }
-  }
-  // Clean up common prefixes and formatting issues
-  strategy = strategy
-    .replace(/^[-*\s]+/, '') // Remove leading dashes, asterisks, spaces
-    .replace(/^\*\*.*?\*\*\s*>?\s*"?/, '') // Remove **Sales Summary:** > " patterns
-    .replace(/^>?\s*"?/, '') // Remove leading > and quotes
-    .replace(/"?\s*$/, '') // Remove trailing quotes
-    .trim();
-  // If no strategy found or it's generic, create personalized one
-  if (!strategy || strategy.length < 50) {
-    strategy = createPersonalizedStrategy(companyName, prospectName, prospectRole);
-  }
-  console.log('🧹 Cleaned Outreach Strategy:', strategy);
-  return strategy;
-}
-
-function extractSalesSummary(perplexityResponse, prospectName, prospectRole, companyName) {
-  let summary = '';
-  // Try to extract specific summary
-  const summaryMatch = perplexityResponse.match(/Sales Summary Paragraph[^>]*?>\s*"?(.*?)"?\s*</s);
-  if (summaryMatch) {
-    summary = summaryMatch[1].trim();
-  } else {
-    // Look for summary content
-    const summarySection = perplexityResponse.match(/(?:Sales Summary)[:\s]+(.*?)(?:\n\n|\*\*|###)/s);
-    if (summarySection) {
-      summary = summarySection[1].trim();
-    }
-  }
-  // Clean up formatting
-  summary = summary
-    .replace(/^[-*\s]+/, '') // Remove leading characters
-    .replace(/^\*\*.*?\*\*\s*>?\s*"?/, '') // Remove prefixes
-    .replace(/^>?\s*"?/, '') // Remove leading > and quotes
-    .replace(/"?\s*$/, '') // Remove trailing quotes
-    .trim();
-  // If no summary or contains wrong name, create personalized one
-  if (!summary || summary.length < 50 || (summary.includes('Veronica') && !prospectName.includes('Veronica'))) {
-    summary = createPersonalizedSummary(prospectName, prospectRole, companyName);
-  }
-  console.log('📊 Cleaned Sales Summary:', summary);
-  return summary;
-}
-
-function createPersonalizedStrategy(companyName, prospectName, prospectRole) {
-  const roleType = getRoleType(prospectRole);
-  const companyEvents = getCompanyEvents(companyName);
-  let strategy = `Reference ${companyName}'s recent ${companyEvents} when reaching out to ${prospectName}. `;
-  if (roleType === 'technical') {
-    strategy += `As a ${prospectRole}, highlight the technical equity optimization and portfolio diversification benefits. `;
-  } else if (roleType === 'leadership') {
-    strategy += `Given their ${prospectRole} position, emphasize strategic liquidity planning and leadership equity optimization. `;
-  } else {
-    strategy += `Focus on their role as ${prospectRole} and the specific equity opportunities available. `;
-  }
-  strategy += `Timing is crucial given current market conditions and vesting milestones.`;
-  return strategy;
-}
-
-function createPersonalizedSummary(prospectName, prospectRole, companyName) {
-  const seniorityLevel = getSeniorityLevel(prospectRole);
-  return `${prospectName}, as a ${prospectRole} at ${companyName}, represents a ${seniorityLevel} employee with significant equity potential and multiple liquidity drivers. Current market conditions and company events create optimal timing for strategic equity transactions.`;
-}
-
-function getRoleType(role) {
-  const technical = ['engineer', 'research', 'scientist', 'developer', 'architect'];
-  const leadership = ['director', 'head', 'vp', 'chief', 'principal'];
-  const roleLower = (role || '').toLowerCase();
-  if (technical.some(term => roleLower.includes(term))) return 'technical';
-  if (leadership.some(term => roleLower.includes(term))) return 'leadership';
-  return 'general';
-}
-
-function getSeniorityLevel(role) {
-  const roleLower = (role || '').toLowerCase();
-  if (roleLower.includes('head') || roleLower.includes('chief') || roleLower.includes('vp')) {
-    return 'senior leadership';
-  } else if (roleLower.includes('director') || roleLower.includes('principal')) {
-    return 'senior';
-  } else if (roleLower.includes('senior') || roleLower.includes('lead')) {
-    return 'experienced';
-  }
-  return 'mid-level';
-}
-
-function getCompanyEvents(companyName) {
-  if ((companyName || '').toLowerCase().includes('openai')) {
-    return '$40B Series F funding and upcoming employee tender offers';
-  } else if ((companyName || '').toLowerCase().includes('figma')) {
-    return 'acquisition developments and market positioning changes';
-  }
-  return 'recent funding activities and market developments';
-}
-
 // SAFETY: Extraction helpers
 const extractSpecificSignals = (perplexityResponse) => {
   try {
@@ -2274,26 +2129,23 @@ app.get('/api/debug/database', async (req, res) => {
   }
 });
 
-// CORS middleware - ADD THIS SECTION
+// Enable CORS for all routes (quick fix)
 app.use((req, res, next) => {
-  // Allow all origins for now (can restrict later)
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  // Handle preflight requests
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    res.sendStatus(200);
+  } else {
+    next();
   }
-  next();
 });
-// END CORS middleware
 
 // CORS test endpoint
 app.get('/api/cors-test', (req, res) => {
   res.json({
     message: 'CORS is working!',
     origin: req.headers.origin,
-    timestamp: new Date().toISOString(),
-    success: true
+    timestamp: new Date().toISOString()
   });
 });
