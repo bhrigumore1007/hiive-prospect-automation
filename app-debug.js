@@ -2765,7 +2765,3 @@ function calculateProspectConfidence(prospect, companyProfile, perplexityRespons
   
   return confidence;
 }
-// ===== DELETE EMERGENCY MODE FUNCTIONS =====
-// Delete the entire storeEnhancedEmergencyProspects function and all references to it.
-// Delete any .slice(0, 3) prospect limiting.
-// Ensure all endpoints use the new Perplexity-powered processing loop only.
