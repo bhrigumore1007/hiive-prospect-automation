@@ -2530,3 +2530,242 @@ const generateCompanyIntelligence = (companyName, prospect, companyProfile) => {
     return { liquidity_signals: `Company stage: ${companyProfile.stage}. Recent funding: ${companyProfile.recentFunding}. Market conditions favorable for equity transactions.`, outreach_strategy: `Reference ${companyName}'s growth trajectory when reaching out to ${name}. Focus on portfolio diversification and strategic equity planning opportunities.`, sales_summary: `${name}, as a ${role} at ${companyName}, represents a potential prospect. Company analysis indicates ${companyProfile.riskLevel.toLowerCase()}.` };
   }
 };
+
+// STEP 3: Perplexity-based company and prospect analysis
+const perplexityResponse = await researchCompanyAndProspects(company, filteredProspects);
+// For each prospect, extract company multiplier and intelligence, calculate equity score and data confidence, and store with full intelligence.
+for (const prospect of filteredProspects) {
+  // Example: parse Perplexity response for this prospect
+  // Set company multiplier, calculate equity score, data confidence, etc.
+  // Store in database
+}
+
+// ===== REPLACE EMERGENCY MODE WITH PRODUCTION PERPLEXITY PROCESSING =====
+// In both GET and POST /api/find-prospects endpoints, after filtering, insert:
+
+// STEP 3: Perplexity-based company and prospect analysis
+console.log('💡 Step 3: Analyzing company and prospects with Perplexity...');
+let perplexityResponse;
+try {
+  perplexityResponse = await researchCompanyAndProspects(company, filteredProspects);
+  console.log('✅ Perplexity analysis complete');
+} catch (error) {
+  console.error('💥 Perplexity analysis failed:', error.message);
+  return res.status(500).json({
+    error: 'Perplexity analysis failed',
+    details: error.message,
+    company: company
+  });
+}
+
+// Extract company insights from Perplexity response
+const companyInsights = extractCompanyInsights(perplexityResponse);
+console.log('🏢 Company insights extracted:', companyInsights);
+
+let storedCount = 0;
+console.log(`📊 Processing ${filteredProspects.length} prospects with Perplexity intelligence...`);
+
+for (let i = 0; i < filteredProspects.length; i++) {
+  const prospect = filteredProspects[i];
+  console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
+  
+  try {
+    // 1. Extract dynamic company multiplier from Perplexity
+    const companyMultiplier = extractCompanyMultiplier(perplexityResponse, company);
+    console.log(`📈 Dynamic company multiplier: ${companyMultiplier}x`);
+    
+    // 2. Calculate equity score using Perplexity-derived multiplier
+    const companyProfile = { 
+      equityMultiplier: companyMultiplier,
+      stage: companyInsights.stage || 'Unknown',
+      valuation: companyInsights.valuation || 1000000000
+    };
+    const equityScore = calculateEquityScore(prospect, companyProfile);
+    console.log(`📊 Calculated equity score: ${equityScore}/10`);
+    
+    // 3. Calculate data confidence with Perplexity enhancement
+    const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
+    console.log(`🎯 Data confidence: ${dataConfidence}/5`);
+    
+    // 4. Generate enhanced intelligence using Perplexity response
+    console.log(`🧠 Generating enhanced intelligence...`);
+    const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
+    
+    // 5. Determine status with fixed logic
+    let status = 'Needs Research';
+    console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+    console.log(`  - Equity Score: ${equityScore}/10`);
+    console.log(`  - Data Confidence: ${dataConfidence}/5`);
+    
+    if (equityScore >= 7 && dataConfidence >= 4) {
+      status = 'Qualified';
+      console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
+    } else if (equityScore >= 6 && dataConfidence >= 3) {
+      status = 'Qualified';
+      console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
+    } else {
+      status = 'Needs Research';
+      console.log(`  ⚠️ NEEDS RESEARCH: Low equity (${equityScore}<6) OR low confidence (${dataConfidence}<3)`);
+    }
+    console.log(`  - FINAL STATUS: ${status}`);
+    
+    // 6. Store in database with correct schema mapping
+    const { data, error } = await supabase
+      .from('prospects')
+      .insert([{
+        full_name: prospect.person_name,
+        role_title: prospect.current_job_title,
+        company_name: company,
+        prospect_type: 'seller',
+        priority_score: equityScore,
+        qualification_status: status,
+        confidence_level: dataConfidence,
+        research_notes: JSON.stringify(enhancedIntelligence),
+        discovery_method: 'perplexity_automated'
+      }]);
+      
+    if (error) {
+      console.error('❌ Database error for', prospect.person_name, ':', error.message);
+    } else {
+      console.log('✅ STORED:', prospect.person_name, 
+        `Equity: ${equityScore}/10,`, 
+        `Confidence: ${dataConfidence}/5,`,
+        `Status: ${status}`);
+      storedCount++;
+    }
+    
+  } catch (err) {
+    console.error('❌ Failed to process prospect:', prospect.person_name, err.message);
+    continue;
+  }
+  
+  // Small delay to prevent overwhelming logs/API
+  await new Promise(resolve => setTimeout(resolve, 100));
+}
+
+console.log(`🎉 Perplexity-powered processing complete: ${storedCount}/${filteredProspects.length} prospects stored`);
+
+// Return success response
+res.json({
+  success: true,
+  company: company,
+  prospects_found: filteredProspects.length,
+  prospects_stored: storedCount,
+  processing_time: `${Date.now() - startTime}ms`,
+  processing_mode: 'perplexity_production'
+});
+
+// ===== ADD MISSING HELPER FUNCTIONS =====
+function extractCompanyInsights(perplexityResponse) {
+  console.log('🔍 Extracting company insights from Perplexity response...');
+  
+  const content = perplexityResponse?.content || '';
+  const insights = {
+    stage: 'Unknown',
+    valuation: 1000000000,
+    hasRecentFunding: false,
+    hasSecondaryMarket: false
+  };
+  
+  // Extract company stage
+  if (content.includes('IPO') || content.includes('public company')) {
+    insights.stage = 'Public';
+  } else if (content.includes('unicorn') || content.includes('billion') || content.includes('Series F') || content.includes('Series G')) {
+    insights.stage = 'Late Stage Unicorn';
+  } else if (content.includes('Series C') || content.includes('Series D') || content.includes('Series E')) {
+    insights.stage = 'Growth Stage';
+  } else if (content.includes('Series A') || content.includes('Series B')) {
+    insights.stage = 'Early Stage';
+  }
+  
+  // Extract valuation indicators
+  const valuationMatch = content.match(/\$(\d+(?:\.\d+)?)\s*billion/i);
+  if (valuationMatch) {
+    insights.valuation = parseFloat(valuationMatch[1]) * 1000000000;
+  }
+  
+  // Extract secondary market signals
+  insights.hasSecondaryMarket = content.includes('secondary market') || 
+                                content.includes('employee tender') || 
+                                content.includes('liquidity');
+  
+  console.log('📊 Extracted insights:', insights);
+  return insights;
+}
+
+function extractCompanyMultiplier(perplexityResponse, companyName) {
+  console.log(`📈 Calculating dynamic multiplier for: ${companyName}`);
+  
+  const insights = extractCompanyInsights(perplexityResponse);
+  let multiplier = 1.0;
+  
+  // Base multiplier on company stage
+  switch (insights.stage) {
+    case 'Public':
+      multiplier = 0.9; // Lower equity grants, more liquid
+      break;
+    case 'Late Stage Unicorn':
+      multiplier = 1.1; // Good equity, approaching liquidity
+      break;
+    case 'Growth Stage':
+      multiplier = 1.2; // High equity potential
+      break;
+    case 'Early Stage':
+      multiplier = 1.15; // High but risky equity
+      break;
+    default:
+      multiplier = 1.0; // Unknown, use default
+  }
+  
+  // Boost for secondary market activity
+  if (insights.hasSecondaryMarket) {
+    multiplier += 0.1;
+    console.log(`  +0.1 boost for secondary market activity`);
+  }
+  
+  // Cap the multiplier
+  multiplier = Math.min(1.3, Math.max(0.8, multiplier));
+  
+  console.log(`  Final multiplier: ${multiplier}x (${insights.stage})`);
+  return multiplier;
+}
+
+function calculateProspectConfidence(prospect, companyProfile, perplexityResponse) {
+  let confidence = 1; // Start at minimum
+  
+  console.log(`📊 Calculating enhanced data confidence for: ${prospect.person_name}`);
+  
+  // Name quality (1 point)
+  if (prospect.person_name && prospect.person_name.includes(' ') && prospect.person_name.length > 3) {
+    confidence += 1;
+    console.log(`  ✅ Real name detected: +1 (${confidence}/5)`);
+  }
+  
+  // Job title quality (1 point)
+  if (prospect.current_job_title && prospect.current_job_title.length > 5) {
+    confidence += 1;
+    console.log(`  ✅ Detailed job title: +1 (${confidence}/5)`);
+  }
+  
+  // Email verification (1 point)
+  if (prospect.email && prospect.email.includes('@') && !prospect.email.includes('noemail')) {
+    confidence += 1;
+    console.log(`  ✅ Valid email found: +1 (${confidence}/5)`);
+  }
+  
+  // Company verification boost from Perplexity (1 point)
+  const content = perplexityResponse?.content || '';
+  if (content.includes(prospect.person_name) || content.includes(prospect.current_job_title)) {
+    confidence += 1;
+    console.log(`  ✅ Mentioned in company research: +1 (${confidence}/5)`);
+  }
+  
+  confidence = Math.min(5, Math.max(1, confidence));
+  console.log(`  📊 FINAL CONFIDENCE: ${confidence}/5`);
+  
+  return confidence;
+}
+// ===== DELETE EMERGENCY MODE FUNCTIONS =====
+// Delete the entire storeEnhancedEmergencyProspects function and all references to it.
+// Delete any .slice(0, 3) prospect limiting.
+// Ensure all endpoints use the new Perplexity-powered processing loop only.
