@@ -405,71 +405,117 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
 };
 
 function findProspectSection(content, prospectName) {
-  // Look for the prospect's dedicated section with ### header
-  const sections = content.split('###');
+  // Find the individual prospect analysis section
+  const sections = content.split(/#### /);
   for (const section of sections) {
-    if (section.includes(prospectName) && (section.includes('(Director') || section.includes('(HR') || section.includes('(Executive') || section.includes('(People'))) {
+    if (section.includes(prospectName)) {
       return section;
     }
   }
+  // Fallback: search entire content for prospect name context
   return content;
 }
 
 function extractSeniority(section) {
-  const match = section.match(/- \*\*Seniority:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  if (section.includes('Executive')) return 'Executive';
+  if (section.includes('Senior')) return 'Senior';
+  if (section.includes('Mid-Senior')) return 'Mid-Senior';
+  if (section.includes('Director')) return 'Director';
+  if (section.includes('Junior')) return 'Junior';
+  return null;
 }
 
 function extractTenure(section) {
-  const match = section.match(/- \*\*Estimated Tenure:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
-}
-
-function extractEmploymentStatus(section) {
-  const match = section.match(/- \*\*Employment Status:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
-}
-
-function extractEquityValue(section) {
-  const match = section.match(/- \*\*Estimated Equity Value:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
-}
-
-function extractPreferredChannel(section) {
-  const match = section.match(/- \*\*Preferred Communication:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
-}
-
-function extractLiquiditySignals(section) {
-  const match = section.match(/- \*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)- \*\*Compliance/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, '; ');
+  const patterns = [
+    /(\d+[+–-]\d*)\s*years/i,
+    /(\d+[+–-]\d*)\s*yrs/i,
+    /(\d+)\s*years/i,
+    /(\d+)\s*yrs/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return match[1] + ' years';
   }
   return null;
 }
 
+function extractEmploymentStatus(section) {
+  if (section.includes('Current employee') || section.includes('Current       |')) return 'Current';
+  if (section.includes('Former')) return 'Former';
+  return 'Current';
+}
+
+function extractEquityValue(section) {
+  const patterns = [
+    /\$(\d+[KkMm][+–-]\$?\d*[KkMm]?[+]?)/,
+    /\$(\d+(?:,\d+)*[KkMm]?[+–-]\$?\d+(?:,\d+)*[KkMm]?[+]?)/,
+    /\$(\d+[KkMm])/
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return '$' + match[1];
+  }
+  return null;
+}
+
+function extractPreferredChannel(section) {
+  if (section.includes('LinkedIn, Email')) return 'LinkedIn, Email';
+  if (section.includes('LinkedIn')) return 'LinkedIn';
+  if (section.includes('Email')) return 'Email';
+  return null;
+}
+
+function extractLiquiditySignals(section) {
+  // Look for key liquidity signal phrases
+  const signals = [];
+  if (section.includes('fully vested')) signals.push('Fully vested');
+  if (section.includes('tender offer')) signals.push('Recent tender offer participation');
+  if (section.includes('IPO delay')) signals.push('IPO delays increasing portfolio risk');
+  if (section.includes('portfolio concentration')) signals.push('Portfolio concentration concerns');
+  if (section.includes('missed tender')) signals.push('Missed recent liquidity window');
+  return signals.length > 0 ? signals.join('; ') : null;
+}
+
 function extractEquityLikelihood(section) {
-  const match = section.match(/- \*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  if (section.includes('High                       |')) return 'High';
+  if (section.includes('Medium-High')) return 'Medium-High';
+  if (section.includes('Medium')) return 'Medium';
+  if (section.includes('Low')) return 'Low';
+  return null;
 }
 
 function extractLiquidityScore(section) {
-  const match = section.match(/- \*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
-  return match ? parseInt(match[1]) : null;
+  const match = section.match(/(\d+)(?:\/10)?/);
+  if (match) {
+    const score = parseInt(match[1]);
+    if (score >= 1 && score <= 10) return score;
+  }
+  return null;
 }
 
 function extractOutreachStrategy(section) {
-  const match = section.match(/- \*\*Outreach Strategy:\*\*\s*([\s\S]*?)- \*\*Sales Summary/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, ' ');
+  // Look for any strategy-related text
+  if (section.includes('Reference') || section.includes('Highlight') || section.includes('Emphasize')) {
+    const lines = section.split('\n');
+    for (const line of lines) {
+      if (line.includes('Reference') || line.includes('Highlight') || line.includes('Emphasize')) {
+        return line.trim().replace(/^[-*]\s*/, '');
+      }
+    }
   }
   return null;
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/- \*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|\n\n|$)/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, ' ');
+  // Look for quoted sales summary text
+  const quotedMatch = section.match(/[">]\s*"([^"]+)"/);
+  if (quotedMatch) return quotedMatch[1];
+  // Look for sales summary paragraphs
+  const paragraphs = section.split('\n\n');
+  for (const para of paragraphs) {
+    if (para.length > 50 && (para.includes('equity') || para.includes('liquidity'))) {
+      return para.trim().replace(/^[">]\s*/, '');
+    }
   }
   return null;
 }
@@ -1028,7 +1074,7 @@ app.post('/api/find-prospects', async (req, res) => {
           
         if (error) {
           console.error('❌ Database error for', prospect.person_name, ':', error.message);
-  } else {
+        } else {
           console.log('✅ STORED:', prospect.person_name);
           storedCount++;
         }
