@@ -867,7 +867,22 @@ app.post('/api/find-prospects', async (req, res) => {
             qualification_status: status,
             confidence_level: dataConfidence,
             research_notes: JSON.stringify(enhancedIntelligence),
-            discovery_method: 'perplexity_automated'
+            discovery_method: 'perplexity_automated',
+            
+            // Store individual intelligence fields in new columns
+            job_seniority: enhancedIntelligence.job_seniority,
+            estimated_tenure: enhancedIntelligence.estimated_tenure,
+            employment_status: enhancedIntelligence.employment_status,
+            estimated_equity_value: enhancedIntelligence.estimated_equity_value,
+            preferred_channel: enhancedIntelligence.preferred_channel,
+            liquidity_signals: enhancedIntelligence.liquidity_signals,
+            equity_likelihood: enhancedIntelligence.equity_likelihood,
+            liquidity_score: enhancedIntelligence.liquidity_score,
+            outreach_strategy: enhancedIntelligence.outreach_strategy,
+            sales_summary: enhancedIntelligence.sales_summary,
+            
+            // Store liquidity signals in outreach_angle for compatibility
+            outreach_angle: enhancedIntelligence.liquidity_signals || 'Market conditions favorable for equity transactions'
           }]);
           
         if (error) {
