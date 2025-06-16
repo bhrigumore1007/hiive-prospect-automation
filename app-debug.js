@@ -775,26 +775,27 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
         
-        // Debug checkpoint before status calculation
-        console.log(`🔍 ABOUT TO CALCULATE STATUS for ${prospect.person_name}`);
-        console.log(`  Current values: equity=${equityScore}, confidence=${dataConfidence}`);
-
-        // Determine status with explicit debugging
+        // Generate intelligence
+        const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
+        
+        // Determine status with debug logging
         let status = 'Needs Research';
-        console.log(`  Initial status: ${status}`);
+
+        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
 
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 1 met)`);
+          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 2 met)`);
+          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
         } else {
-          console.log(`  ❌ STATUS REMAINS: Needs Research`);
-          console.log(`    Reason: equity=${equityScore}<7 OR confidence=${dataConfidence}<4`);
+          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
 
-        console.log(`  🎯 FINAL STATUS BEFORE DATABASE: ${status}`);
+        console.log(`  FINAL STATUS: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -936,26 +937,27 @@ app.post('/api/find-prospects', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponsePOST);
         
-        // Debug checkpoint before status calculation
-        console.log(`🔍 ABOUT TO CALCULATE STATUS for ${prospect.person_name}`);
-        console.log(`  Current values: equity=${equityScore}, confidence=${dataConfidence}`);
-
-        // Determine status with explicit debugging
+        // Generate intelligence
+        const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
+        
+        // Determine status with debug logging
         let status = 'Needs Research';
-        console.log(`  Initial status: ${status}`);
+
+        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
 
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 1 met)`);
+          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 2 met)`);
+          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
         } else {
-          console.log(`  ❌ STATUS REMAINS: Needs Research`);
-          console.log(`    Reason: equity=${equityScore}<7 OR confidence=${dataConfidence}<4`);
+          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
 
-        console.log(`  🎯 FINAL STATUS BEFORE DATABASE: ${status}`);
+        console.log(`  FINAL STATUS: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -974,7 +976,7 @@ app.post('/api/find-prospects', async (req, res) => {
           
         if (error) {
           console.error('❌ Database error for', prospect.person_name, ':', error.message);
-        } else {
+  } else {
           console.log('✅ STORED:', prospect.person_name);
           storedCount++;
         }
@@ -1078,4 +1080,4 @@ app.listen(PORT, () => {
   console.log('🔍 Find Prospects GET: http://localhost:' + PORT + '/api/find-prospects/:company');
   console.log('🔍 Find Prospects POST: http://localhost:' + PORT + '/api/find-prospects');
   console.log('🗑️ Delete Prospect: DELETE http://localhost:' + PORT + '/api/prospects/:id');
-});
+}); 
