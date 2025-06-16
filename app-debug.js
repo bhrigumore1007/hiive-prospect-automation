@@ -379,50 +379,24 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
   try {
     const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
-    const prospectRole = prospect.current_job_title || prospect.role_title || 'Unknown Role';
-    
-    console.log(`🔍 DEBUGGING INTELLIGENCE EXTRACTION for: ${prospectName}`);
     
     // Extract insights from Perplexity response content
     const content = perplexityResponse || '';
-    console.log(`📄 Content length: ${content.length} characters`);
-    console.log(`📄 Content preview (first 200 chars): ${content.substring(0, 200)}`);
     
     // Find prospect-specific section in Perplexity response
     const prospectSection = findProspectSection(content, prospectName);
-    console.log(`📄 Found prospect section length: ${prospectSection.length} characters`);
-    console.log(`📄 Prospect section preview: ${prospectSection.substring(0, 200)}`);
-    
-    // Test each extraction function
-    const seniority = extractSeniority(prospectSection);
-    console.log(`🎯 Extracted seniority: ${seniority}`);
-    
-    const tenure = extractTenure(prospectSection);
-    console.log(`🎯 Extracted tenure: ${tenure}`);
-    
-    const equityValue = extractEquityValue(prospectSection);
-    console.log(`🎯 Extracted equity value: ${equityValue}`);
-    
-    const liquidityScore = extractLiquidityScore(prospectSection);
-    console.log(`🎯 Extracted liquidity score: ${liquidityScore}`);
-    
-    const liquiditySignals = extractLiquiditySignals(prospectSection);
-    console.log(`🎯 Extracted liquidity signals: ${liquiditySignals}`);
-    
-    const salesSummary = extractSalesSummary(prospectSection);
-    console.log(`🎯 Extracted sales summary: ${salesSummary}`);
     
     return {
-      job_seniority: seniority,
-      estimated_tenure: tenure,
+      job_seniority: extractSeniority(prospectSection),
+      estimated_tenure: extractTenure(prospectSection),
       employment_status: extractEmploymentStatus(prospectSection),
-      estimated_equity_value: equityValue,
+      estimated_equity_value: extractEquityValue(prospectSection),
       preferred_channel: extractPreferredChannel(prospectSection),
-      liquidity_signals: liquiditySignals,
+      liquidity_signals: extractLiquiditySignals(prospectSection),
       equity_likelihood: extractEquityLikelihood(prospectSection),
-      liquidity_score: liquidityScore,
+      liquidity_score: extractLiquidityScore(prospectSection),
       outreach_strategy: extractOutreachStrategy(prospectSection),
-      sales_summary: salesSummary
+      sales_summary: extractSalesSummary(prospectSection)
     };
   } catch (error) {
     console.error('💥 Enhanced intelligence creation failed:', error);
@@ -430,107 +404,194 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
   }
 };
 
+function findProspectSection(content, prospectName) {
+  // Find the individual prospect analysis section starting with ###
+  const sections = content.split('###');
+  for (const section of sections) {
+    if (section.includes(prospectName)) {
+      return section;
+    }
+  }
+  // Fallback: search entire content for prospect name context
+  return content;
+}
+
 function extractSeniority(section) {
+  // Look for seniority patterns in the Figma format
+  const patterns = [
+    /\*\*Seniority:\*\*\s*([^\n*]+)/i,
+    /Seniority:\s*([^\n*]+)/i,
+    /Director \(([^)]+)\)/i,
+    /Executive \(([^)]+)\)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return match[1].trim();
+  }
+  // Fallback: detect from content
+  if (section.includes('Director')) return 'Director';
   if (section.includes('Executive')) return 'Executive';
   if (section.includes('Senior')) return 'Senior';
-  if (section.includes('Mid-Senior')) return 'Mid-Senior';
-  if (section.includes('Director')) return 'Director';
-  if (section.includes('Junior')) return 'Junior';
+  if (section.includes('Mid-')) return 'Mid-level';
   return null;
 }
 
 function extractTenure(section) {
+  // Look for tenure patterns
   const patterns = [
-    /(\d+[+–-]\d*)\s*years/i,
-    /(\d+[+–-]\d*)\s*yrs/i,
-    /(\d+)\s*years/i,
-    /(\d+)\s*yrs/i
+    /\*\*Estimated Tenure:\*\*\s*([^\n*]+)/i,
+    /\*\*Tenure:\*\*\s*([^\n*]+)/i,
+    /Tenure:\s*([^\n*]+)/i,
+    /(\d+[–-]\d+)\s*years/i,
+    /(\d+\+?)\s*years/i
   ];
   for (const pattern of patterns) {
     const match = section.match(pattern);
-    if (match) return match[1] + ' years';
+    if (match) return match[1].trim();
   }
   return null;
 }
 
 function extractEmploymentStatus(section) {
-  if (section.includes('Current employee') || section.includes('Current       |')) return 'Current';
-  if (section.includes('Former')) return 'Former';
+  // Look for employment status
+  const patterns = [
+    /\*\*Employment Status:\*\*\s*([^\n*]+)/i,
+    /Employment Status:\s*([^\n*]+)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return match[1].trim();
+  }
+  if (section.includes('Current employee')) return 'Current';
   return 'Current';
 }
 
 function extractEquityValue(section) {
+  // Look for equity value patterns
   const patterns = [
-    /\$(\d+[KkMm][+–-]\$?\d*[KkMm]?[+]?)/,
-    /\$(\d+(?:,\d+)*[KkMm]?[+–-]\$?\d+(?:,\d+)*[KkMm]?[+]?)/,
-    /\$(\d+[KkMm])/
+    /\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i,
+    /Equity Value:\s*([^\n*]+)/i,
+    /\$(\d+[KMB]?[–-]\$?\d+[KMB]?)/i,
+    /\$(\d+[KMB])/i
   ];
   for (const pattern of patterns) {
     const match = section.match(pattern);
-    if (match) return '$' + match[1];
+    if (match) return match[1].trim();
   }
   return null;
 }
 
 function extractPreferredChannel(section) {
-  if (section.includes('LinkedIn, Email')) return 'LinkedIn, Email';
+  // Look for communication preferences
+  const patterns = [
+    /\*\*Preferred Communication:\*\*\s*([^\n*]+)/i,
+    /Communication:\s*([^\n*]+)/i,
+    /Channel:\s*([^\n*]+)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return match[1].trim();
+  }
+  if (section.includes('LinkedIn') && section.includes('email')) return 'LinkedIn/Email';
   if (section.includes('LinkedIn')) return 'LinkedIn';
-  if (section.includes('Email')) return 'Email';
+  if (section.includes('Email') || section.includes('email')) return 'Email';
   return null;
 }
 
 function extractLiquiditySignals(section) {
-  // Look for key liquidity signal phrases
+  // Look for specific liquidity signals
+  const patterns = [
+    /\*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
+    /Liquidity Signals:\s*([\s\S]*?)(?=\*\*|$)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) {
+      return match[1].trim().replace(/\n/g, '; ').replace(/\s+/g, ' ');
+    }
+  }
+  // Extract key signal phrases
   const signals = [];
-  if (section.includes('fully vested')) signals.push('Fully vested');
-  if (section.includes('tender offer')) signals.push('Recent tender offer participation');
-  if (section.includes('IPO delay')) signals.push('IPO delays increasing portfolio risk');
-  if (section.includes('portfolio concentration')) signals.push('Portfolio concentration concerns');
-  if (section.includes('missed tender')) signals.push('Missed recent liquidity window');
+  if (section.includes('fully vested')) signals.push('Fully vested after 4+ years');
+  if (section.includes('tender offer')) signals.push('Recent tender offer opportunity');
+  if (section.includes('IPO delay')) signals.push('IPO delays creating portfolio concentration');
+  if (section.includes('May 2024')) signals.push('Last liquidity window was May 2024');
   return signals.length > 0 ? signals.join('; ') : null;
 }
 
 function extractEquityLikelihood(section) {
-  if (section.includes('High                       |')) return 'High';
-  if (section.includes('Medium-High')) return 'Medium-High';
+  // Look for equity ownership likelihood
+  const patterns = [
+    /\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i,
+    /Ownership Likelihood:\s*([^\n*]+)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) return match[1].trim();
+  }
+  if (section.includes('High')) return 'High';
   if (section.includes('Medium')) return 'Medium';
   if (section.includes('Low')) return 'Low';
   return null;
 }
 
 function extractLiquidityScore(section) {
-  const match = section.match(/(\d+)(?:\/10)?/);
-  if (match) {
-    const score = parseInt(match[1]);
-    if (score >= 1 && score <= 10) return score;
+  // Look for liquidity motivation score
+  const patterns = [
+    /\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i,
+    /Motivation Score:\s*(\d+)\/10/i,
+    /Score:\s*(\d+)\/10/i,
+    /(\d+)\/10/
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) {
+      const score = parseInt(match[1]);
+      if (score >= 1 && score <= 10) return score;
+    }
   }
   return null;
 }
 
 function extractOutreachStrategy(section) {
-  // Look for any strategy-related text
-  if (section.includes('Reference') || section.includes('Highlight') || section.includes('Emphasize')) {
-    const lines = section.split('\n');
-    for (const line of lines) {
-      if (line.includes('Reference') || line.includes('Highlight') || line.includes('Emphasize')) {
-        return line.trim().replace(/^[-*]\s*/, '');
-      }
+  // Look for outreach strategy
+  const patterns = [
+    /\*\*Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
+    /\*\*Personalized Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
+    /Strategy:\s*([\s\S]*?)(?=\*\*|$)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) {
+      return match[1].trim().replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    }
+  }
+  // Look for strategy-related content
+  const lines = section.split('\n');
+  for (const line of lines) {
+    if (line.includes('Reference') || line.includes('Highlight') || line.includes('Emphasize')) {
+      return line.trim().replace(/^[-*]\s*/, '');
     }
   }
   return null;
 }
 
 function extractSalesSummary(section) {
+  // Look for sales summary
+  const patterns = [
+    /\*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|$)/i,
+    /\*\*Sales Summary:\*\*\s*([\s\S]*?)(?=---|$)/i,
+    /Sales Summary:\s*([\s\S]*?)(?=---|$)/i
+  ];
+  for (const pattern of patterns) {
+    const match = section.match(pattern);
+    if (match) {
+      return match[1].trim().replace(/\n/g, ' ').replace(/\s+/g, ' ');
+    }
+  }
   // Look for quoted sales summary text
   const quotedMatch = section.match(/[">]\s*"([^"]+)"/);
   if (quotedMatch) return quotedMatch[1];
-  // Look for sales summary paragraphs
-  const paragraphs = section.split('\n\n');
-  for (const para of paragraphs) {
-    if (para.length > 50 && (para.includes('equity') || para.includes('liquidity'))) {
-      return para.trim().replace(/^[">]\s*/, '');
-    }
-  }
   return null;
 }
 
@@ -1192,4 +1253,4 @@ app.listen(PORT, () => {
   console.log('🔍 Find Prospects GET: http://localhost:' + PORT + '/api/find-prospects/:company');
   console.log('🔍 Find Prospects POST: http://localhost:' + PORT + '/api/find-prospects');
   console.log('🗑️ Delete Prospect: DELETE http://localhost:' + PORT + '/api/prospects/:id');
-}); 
+});
