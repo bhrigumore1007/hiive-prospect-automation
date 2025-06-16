@@ -2545,7 +2545,7 @@ for (const prospect of filteredProspects) {
 
 // STEP 3: Perplexity-based company and prospect analysis
 console.log('💡 Step 3: Analyzing company and prospects with Perplexity...');
-let perplexityResponse;
+perplexityResponse;
 try {
   perplexityResponse = await researchCompanyAndProspects(company, filteredProspects);
   console.log('✅ Perplexity analysis complete');
@@ -2765,3 +2765,5 @@ function calculateProspectConfidence(prospect, companyProfile, perplexityRespons
   
   return confidence;
 }
+
+let perplexityResponsePOST;
