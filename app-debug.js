@@ -376,51 +376,43 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
   }
 }
 
+// Replacing createEnhancedIntelligence (starting at line 378) with the simple debug version
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
-  try {
-    const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+  const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+  
+  console.log('=== DEBUG START ===');
+  console.log('Prospect:', prospectName);
+  console.log('Response exists:', !!perplexityResponse);
+  console.log('Response length:', perplexityResponse ? perplexityResponse.length : 0);
+  
+  if (perplexityResponse && prospectName === 'Rick Fulton') {
+    console.log('=== RICK FULTON SECTION ===');
+    console.log('First 500 chars:', perplexityResponse.substring(0, 500));
     
-    // === DEBUG LOGGING ===
-    console.log(`\n=== DEBUGGING ${prospectName} ===`);
-    console.log(`Perplexity response length: ${perplexityResponse?.length || 0}`);
-    console.log(`First 1000 chars: ${perplexityResponse?.substring(0, 1000) || 'NO CONTENT'}`);
-    
-    // Find Rick Fulton's section specifically
-    if (prospectName === 'Rick Fulton') {
-      console.log(`\n=== RICK FULTON FULL SECTION ===`);
-      const sections = perplexityResponse.split('###');
-      for (let i = 0; i < sections.length; i++) {
-        if (sections[i].includes('Rick Fulton')) {
-          console.log(`Found Rick in section ${i}:`);
-          console.log(sections[i]);
-          break;
-        }
+    // Find Rick's section
+    const sections = perplexityResponse.split('###');
+    sections.forEach((section, index) => {
+      if (section.includes('Rick Fulton')) {
+         console.log(`Rick found in section ${index}:`);
+         console.log(section.substring(0, 800));
       }
-    }
-    // === END DEBUG LOGGING ===
-    
-    // Extract insights from Perplexity response content
-    const content = perplexityResponse || '';
-    
-    // Find prospect-specific section in Perplexity response
-    const prospectSection = findProspectSection(content, prospectName);
-    
-    return {
-      job_seniority: extractSeniority(prospectSection),
-      estimated_tenure: extractTenure(prospectSection),
-      employment_status: extractEmploymentStatus(prospectSection),
-      estimated_equity_value: extractEquityValue(prospectSection),
-      preferred_channel: extractPreferredChannel(prospectSection),
-      liquidity_signals: extractLiquiditySignals(prospectSection),
-      equity_likelihood: extractEquityLikelihood(prospectSection),
-      liquidity_score: extractLiquidityScore(prospectSection),
-      outreach_strategy: extractOutreachStrategy(prospectSection),
-      sales_summary: extractSalesSummary(prospectSection)
-    };
-  } catch (error) {
-    console.error('💥 Enhanced intelligence creation failed:', error);
-    return {};
+    });
   }
+  
+  console.log('=== DEBUG END ===');
+  
+  return {
+    job_seniority: 'Debug Mode',
+    estimated_tenure: '2-4 years',
+    employment_status: 'Current',
+    estimated_equity_value: '$2M–$6M',
+    preferred_channel: 'LinkedIn',
+    liquidity_signals: 'Debug extraction in progress',
+    equity_likelihood: 'High',
+    liquidity_score: 8,
+    outreach_strategy: ( 'Debug mode active' ),
+    sales_summary: ( 'Debugging prospect extraction' )
+  };
 };
 
 function findProspectSection(content, prospectName) {
@@ -1057,25 +1049,4 @@ app.post('/api/find-prospects', async (req, res) => {
       }
     }
 
-    console.log(`🎉 Processing complete: ${storedCount}/${filteredProspects.length} prospects stored`);
-
-    // Return success response
-    res.json({
-      success: true,
-      company: company,
-      prospects_found: filteredProspects.length,
-      prospects_stored: storedCount,
-      processing_time: `${Date.now() - startTime}ms`,
-      processing_mode: 'perplexity_production'
-    });
-
-  } catch (error) {
-    console.error('💥 Endpoint error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      details: error.message,
-      company: req.body?.company || 'unknown',
-      processing_time: `${Date.now() - startTime}ms`
-    });
-  }
-});
+    console.log(`
