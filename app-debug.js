@@ -778,13 +778,26 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
         
-        // Determine status
+        // Debug checkpoint - ensure we reach status logic
+        console.log(`🔍 REACHED STATUS SECTION for ${prospect.person_name} - equity: ${equityScore}, confidence: ${dataConfidence}`);
+        
+        // Determine status with debug logging
         let status = 'Needs Research';
+        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
+
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
+          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
+          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
+        } else {
+          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
+
+        console.log(`  FINAL STATUS: ${status}`);
         
         console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
@@ -931,13 +944,26 @@ app.post('/api/find-prospects', async (req, res) => {
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
         
-        // Determine status
+        // Debug checkpoint - ensure we reach status logic
+        console.log(`🔍 REACHED STATUS SECTION for ${prospect.person_name} - equity: ${equityScore}, confidence: ${dataConfidence}`);
+        
+        // Determine status with debug logging
         let status = 'Needs Research';
+        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
+
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
+          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
+          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
+        } else {
+          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
+
+        console.log(`  FINAL STATUS: ${status}`);
         
         console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
