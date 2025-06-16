@@ -380,6 +380,25 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
   try {
     const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
     
+    // === DEBUG LOGGING ===
+    console.log(`\n=== DEBUGGING ${prospectName} ===`);
+    console.log(`Perplexity response length: ${perplexityResponse?.length || 0}`);
+    console.log(`First 1000 chars: ${perplexityResponse?.substring(0, 1000) || 'NO CONTENT'}`);
+    
+    // Find Rick Fulton's section specifically
+    if (prospectName === 'Rick Fulton') {
+      console.log(`\n=== RICK FULTON FULL SECTION ===`);
+      const sections = perplexityResponse.split('###');
+      for (let i = 0; i < sections.length; i++) {
+        if (sections[i].includes('Rick Fulton')) {
+          console.log(`Found Rick in section ${i}:`);
+          console.log(sections[i]);
+          break;
+        }
+      }
+    }
+    // === END DEBUG LOGGING ===
+    
     // Extract insights from Perplexity response content
     const content = perplexityResponse || '';
     
@@ -1059,76 +1078,4 @@ app.post('/api/find-prospects', async (req, res) => {
       processing_time: `${Date.now() - startTime}ms`
     });
   }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-// Test database connection - show all prospects
-app.get('/api/test-db', async (req, res) => {
-  console.log('🔍 Testing database connection...');
-  try {
-    const { data, error } = await supabase
-      .from('prospects')
-      .select('*')
-      .order('id', { ascending: true });
-    
-    if (error) throw error;
-    
-    console.log(`✅ Database test successful - found ${data.length} prospects`);
-    res.json({ 
-      status: 'db_working', 
-      total_prospects: data.length,
-      prospects: data,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('❌ Database test failed:', error.message);
-    res.status(500).json({ 
-      error: 'Database connection failed',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Delete prospect endpoint
-app.delete('/api/prospects/:id', async (req, res) => {
-  console.log('🗑️ Delete prospect request for ID:', req.params.id);
-  try {
-    const prospectId = req.params.id;
-    if (!prospectId) {
-      return res.status(400).json({ error: 'Prospect ID is required' });
-    }
-    
-    const { data, error } = await supabase
-      .from('prospects')
-      .delete()
-      .eq('id', prospectId);
-    
-    if (error) {
-      console.error('Supabase delete error:', error);
-      return res.status(500).json({ error: 'Failed to delete prospect from database' });
-    }
-    
-    console.log('✅ Prospect deleted successfully:', prospectId);
-    res.json({ success: true, message: 'Prospect deleted successfully' });
-  } catch (error) {
-    console.error('Delete prospect error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('\n🚀 Server running on port', PORT);
-  console.log('\nAvailable endpoints:');
-  console.log('💚 Health: http://localhost:' + PORT + '/api/health');
-  console.log('💾 Test DB: http://localhost:' + PORT + '/api/test-db');
-  console.log('🔍 Find Prospects GET: http://localhost:' + PORT + '/api/find-prospects/:company');
-  console.log('🔍 Find Prospects POST: http://localhost:' + PORT + '/api/find-prospects');
-  console.log('🗑️ Delete Prospect: DELETE http://localhost:' + PORT + '/api/prospects/:id');
 });
