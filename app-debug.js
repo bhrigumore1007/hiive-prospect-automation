@@ -780,13 +780,20 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         
         // Determine status
         let status = 'Needs Research';
-        if (equityScore >= 7 && dataConfidence >= 4) {
+        console.log(`🎯 STATUS DEBUG for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (type: ${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (type: ${typeof dataConfidence})`);
+        const condition1 = (equityScore >= 7) && (dataConfidence >= 4);
+        const condition2 = (equityScore >= 6) && (dataConfidence >= 3);
+        console.log(`  Condition 1 (≥7 equity + ≥4 conf): ${condition1}`);
+        console.log(`  Condition 2 (≥6 equity + ≥3 conf): ${condition2}`);
+        if (condition1 || condition2) {
           status = 'Qualified';
-        } else if (equityScore >= 6 && dataConfidence >= 3) {
-          status = 'Qualified';
+          console.log(`  ✅ SETTING STATUS TO: Qualified`);
+        } else {
+          console.log(`  ❌ KEEPING STATUS AS: Needs Research`);
         }
-        
-        console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
+        console.log(`  Final status: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -933,13 +940,20 @@ app.post('/api/find-prospects', async (req, res) => {
         
         // Determine status
         let status = 'Needs Research';
-        if (equityScore >= 7 && dataConfidence >= 4) {
+        console.log(`🎯 STATUS DEBUG for ${prospect.person_name}:`);
+        console.log(`  equityScore: ${equityScore} (type: ${typeof equityScore})`);
+        console.log(`  dataConfidence: ${dataConfidence} (type: ${typeof dataConfidence})`);
+        const condition1 = (equityScore >= 7) && (dataConfidence >= 4);
+        const condition2 = (equityScore >= 6) && (dataConfidence >= 3);
+        console.log(`  Condition 1 (≥7 equity + ≥4 conf): ${condition1}`);
+        console.log(`  Condition 2 (≥6 equity + ≥3 conf): ${condition2}`);
+        if (condition1 || condition2) {
           status = 'Qualified';
-        } else if (equityScore >= 6 && dataConfidence >= 3) {
-          status = 'Qualified';
+          console.log(`  ✅ SETTING STATUS TO: Qualified`);
+        } else {
+          console.log(`  ❌ KEEPING STATUS AS: Needs Research`);
         }
-        
-        console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
+        console.log(`  Final status: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
