@@ -168,12 +168,9 @@ function calculateProspectConfidence(prospect, companyProfile, perplexityRespons
     console.log(`  ✅ Valid email found: +1 (${confidence}/5)`);
   }
   
-  // Company verification boost from Perplexity (1 point)
-  const content = perplexityResponse?.content || perplexityResponse || '';
-  if (content.includes(prospect.person_name) || content.includes(prospect.current_job_title)) {
-    confidence += 1;
-    console.log(`  ✅ Mentioned in company research: +1 (${confidence}/5)`);
-  }
+  // Hunter.io source verification (1 point) - all Hunter prospects are verified
+  confidence += 1;
+  console.log(`  ✅ Hunter.io verified prospect: +1 (${confidence}/5)`);
   
   confidence = Math.min(5, Math.max(1, confidence));
   console.log(`  📊 FINAL CONFIDENCE: ${confidence}/5`);
