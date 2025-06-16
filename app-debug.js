@@ -415,52 +415,53 @@ function findProspectSection(content, prospectName) {
 }
 
 function extractSeniority(section) {
-  const match = section.match(/\*\*Seniority:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Seniority:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractTenure(section) {
-  const match = section.match(/\*\*Tenure Estimate:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Tenure Estimate:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractEmploymentStatus(section) {
-  const match = section.match(/\*\*Employment Status:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Employment Status:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractEquityValue(section) {
-  const match = section.match(/\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractPreferredChannel(section) {
-  const match = section.match(/\*\*Preferred Channel:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Preferred Channel:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractLiquiditySignals(section) {
-  const match = section.match(/\*\*Specific Liquidity Signals:\*\*\s*([^*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Specific Liquidity Signals:\*\*\s*([^*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractEquityLikelihood(section) {
-  const match = section.match(/\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractLiquidityScore(section) {
-  const match = section.match(/\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
+  const match = section.match(/[-*]\s*\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
   return match ? parseInt(match[1]) : null;
 }
 
 function extractOutreachStrategy(section) {
-  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([^*]+)/i);
+  const match = section.match(/[-*]\s*\*\*Personalized Outreach Strategy:\*\*\s*([^*]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?\s*([^*\n]+)/i);
+  const match = section.match(/[-*]\s*\*\*Sales Summary:\*\*\s*[>]?
+?\s*([^*\n]+)/i);
   return match ? match[1].trim() : null;
 }
 
