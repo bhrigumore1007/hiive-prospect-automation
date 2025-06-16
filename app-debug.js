@@ -378,113 +378,176 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
 
 // Role-based intelligence generation for prospects
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
-  const prospectName = prospect.person_name || 'Unknown';
-  const prospectRole = prospect.current_job_title || 'Unknown Role';
-  
-  // Extract company-level intelligence from Perplexity
-  const companyData = extractCompanyData(perplexityResponse, companyName);
-  
-  // Generate role-specific intelligence based on company data
-  const roleIntelligence = generateRoleBasedIntelligence(prospectRole, companyData);
-  
-  return {
-    job_seniority: roleIntelligence.seniority,
-    estimated_tenure: roleIntelligence.tenure,
-    employment_status: 'Current',
-    estimated_equity_value: roleIntelligence.equityValue,
-    preferred_channel: roleIntelligence.channel,
-    liquidity_signals: generateLiquiditySignals(companyData, roleIntelligence),
-    equity_likelihood: roleIntelligence.equityLikelihood,
-    liquidity_score: roleIntelligence.liquidityScore,
-    outreach_strategy: generateOutreachStrategy(prospectName, companyName, companyData, roleIntelligence),
-    sales_summary: generateSalesSummary(prospectName, prospectRole, companyName, companyData, roleIntelligence)
-  };
+  try {
+    const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+    
+    console.log(`🔍 Extracting intelligence for: ${prospectName}`);
+    
+    if (!perplexityResponse) {
+      console.log('❌ No Perplexity response available');
+      return {};
+    }
+    
+    // Find the specific prospect section in the response
+    const prospectSection = findProspectSection(perplexityResponse, prospectName);
+    console.log(`📄 Found section length: ${prospectSection.length} chars`);
+    
+    // Extract data from the prospect's dedicated section
+    const intelligence = {
+      job_seniority: extractJobSeniority(prospectSection),
+      estimated_tenure: extractTenure(prospectSection),
+      employment_status: extractEmploymentStatus(prospectSection),
+      estimated_equity_value: extractEquityValue(prospectSection),
+      preferred_channel: extractPreferredChannel(prospectSection),
+      liquidity_signals: extractLiquiditySignals(prospectSection),
+      equity_likelihood: extractEquityLikelihood(prospectSection),
+      liquidity_score: extractLiquidityScore(prospectSection),
+      outreach_strategy: extractOutreachStrategy(prospectSection),
+      sales_summary: extractSalesSummary(prospectSection)
+    };
+    
+    console.log(`✅ Extracted intelligence:`, intelligence);
+    return intelligence;
+    
+  } catch (error) {
+    console.error('💥 Enhanced intelligence creation failed:', error);
+    return {};
+  }
 };
 
-function extractCompanyData(perplexityResponse, companyName) {
-  const content = perplexityResponse || '';
+function findProspectSection(content, prospectName) {
+  // Look for the prospect's dedicated section with ###
+  const sections = content.split('###');
   
-  return {
-    founded: content.includes('2012') ? '2012' : 'Unknown',
-    stage: content.includes('IPO') ? 'Pre-IPO' : 'Late Stage',
-    valuation: content.includes('$17.84 billion') ? '$17.84B' : content.includes('$12.5 billion') ? '$12.5B' : 'Unknown',
-    lastFunding: content.includes('May 2024 tender offer') ? 'May 2024 tender offer' : 'Recent funding',
-    ipoTimeline: content.includes('next 12 months') ? 'Expected within 12 months' : 'Uncertain',
-    hasSecondaryActivity: content.includes('tender offer') || content.includes('secondary activity'),
-    companyName: companyName
-  };
-}
-
-function generateRoleBasedIntelligence(role, companyData) {
-  const title = role.toLowerCase();
-  
-  if (title.includes('director') || title.includes('head')) {
-    return {
-      seniority: 'Director',
-      tenure: '3-5 years',
-      equityValue: '$2M–$6M',
-      channel: 'LinkedIn',
-      equityLikelihood: 'High',
-      liquidityScore: 8
-    };
-  } else if (title.includes('senior') || title.includes('manager')) {
-    return {
-      seniority: 'Senior level',
-      tenure: '2-4 years', 
-      equityValue: '$500K–$2M',
-      channel: 'LinkedIn',
-      equityLikelihood: 'High',
-      liquidityScore: 7
-    };
-  } else if (title.includes('assistant') || title.includes('coordinator')) {
-    return {
-      seniority: 'Support level',
-      tenure: '1-3 years',
-      equityValue: '$50K–$250K', 
-      channel: 'Email',
-      equityLikelihood: 'Medium',
-      liquidityScore: 5
-    };
-  } else {
-    return {
-      seniority: 'Mid level',
-      tenure: '2-3 years',
-      equityValue: '$200K–$800K',
-      channel: 'LinkedIn', 
-      equityLikelihood: 'Medium-High',
-      liquidityScore: 6
-    };
-  }
-}
-
-function generateLiquiditySignals(companyData, roleIntelligence) {
-  const signals = [];
-  
-  if (companyData.hasSecondaryActivity) {
-    signals.push(`Last liquidity window was ${companyData.lastFunding}`);
+  for (const section of sections) {
+    if (section.includes(prospectName)) {
+      console.log(`✅ Found dedicated section for ${prospectName}`);
+      return section;
+    }
   }
   
-  if (companyData.ipoTimeline.includes('12 months')) {
-    signals.push('IPO expected within 12 months creating pre-public liquidity urgency');
-  }
-  
-  if (roleIntelligence.seniority === 'Director') {
-    signals.push('Likely fully vested with substantial equity holdings');
-  } else {
-    signals.push('Approaching or recently reached vesting milestones');
-  }
-  
-  signals.push(`${companyData.companyName} at ${companyData.valuation} valuation creates portfolio concentration risk`);
-  
-  return signals.join('; ');
+  console.log(`❌ No dedicated section found for ${prospectName}`);
+  return content; // Fallback to full content
 }
 
-function generateOutreachStrategy(name, company, companyData, roleIntelligence) {
-  return `Contact ${name} regarding ${company} equity opportunities. Reference recent ${companyData.lastFunding} and upcoming IPO timeline. Emphasize ${roleIntelligence.seniority.toLowerCase()}-level liquidity strategies and portfolio diversification ahead of public offering.`;
+function extractJobSeniority(section) {
+  // Look for: **Job Title/Seniority:** Director (Senior leadership, high equity)
+  const match = section.match(/\*\*Job Title\/Seniority:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const seniority = match[1].trim();
+    console.log(`📊 Found seniority: "${seniority}"`);
+    return seniority;
+  }
+  return null;
 }
 
-function generateSalesSummary(name, role, company, companyData, roleIntelligence) {
-  return `${name}, as a ${role} at ${company}, represents a high-priority prospect with ${roleIntelligence.equityValue} estimated equity value. With ${company}'s IPO ${companyData.ipoTimeline.toLowerCase()} and recent ${companyData.lastFunding}, this is an optimal time for secondary liquidity discussions.`;
+function extractTenure(section) {
+  // Look for: **Estimated Tenure:** 3-5 years
+  const match = section.match(/\*\*Estimated Tenure:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const tenure = match[1].trim();
+    console.log(`📊 Found tenure: "${tenure}"`);
+    return tenure;
+  }
+  return null;
+}
+
+function extractEmploymentStatus(section) {
+  // Look for: **Employment Status:** Current employee
+  const match = section.match(/\*\*Employment Status:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const status = match[1].trim();
+    console.log(`📊 Found employment status: "${status}"`);
+    return status;
+  }
+  return null;
+}
+
+function extractEquityValue(section) {
+  // Look for: **Estimated Equity Value:** $2M–$5M+
+  const match = section.match(/\*\*Estimated Equity Value:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const equityValue = match[1].trim();
+    console.log(`📊 Found equity value: "${equityValue}"`);
+    return equityValue;
+  }
+  return null;
+}
+
+function extractPreferredChannel(section) {
+  // Look for: **Preferred Channel:** LinkedIn or email
+  const match = section.match(/\*\*Preferred Channel:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const channel = match[1].trim();
+    console.log(`📊 Found preferred channel: "${channel}"`);
+    return channel;
+  }
+  return null;
+}
+
+function extractLiquiditySignals(section) {
+  // Look for the bullet points under **Specific Liquidity Signals:**
+  const signalsMatch = section.match(/\*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=\*\*|$)/i);
+  
+  if (signalsMatch) {
+    const signalsText = signalsMatch[1].trim();
+    // Extract bullet points and clean them up
+    const signals = signalsText.split(/[-•]\s*/)
+      .filter(signal => signal.trim().length > 0)
+      .map(signal => signal.trim().replace(/\n/g, ' '))
+      .slice(0, 3); // Take first 3 signals
+    
+    if (signals.length > 0) {
+      const result = signals.join('; ');
+      console.log(`📊 Found liquidity signals: "${result}"`);
+      return result;
+    }
+  }
+  return null;
+}
+
+function extractEquityLikelihood(section) {
+  // Look for: **Equity Ownership Likelihood:** High
+  const match = section.match(/\*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/i);
+  if (match) {
+    const likelihood = match[1].trim();
+    console.log(`📊 Found equity likelihood: "${likelihood}"`);
+    return likelihood;
+  }
+  return null;
+}
+
+function extractLiquidityScore(section) {
+  // Look for: **Liquidity Motivation Score:** 9/10
+  const match = section.match(/\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
+  if (match) {
+    const score = parseInt(match[1]);
+    console.log(`📊 Found liquidity score: ${score}`);
+    return score;
+  }
+  return null;
+}
+
+function extractOutreachStrategy(section) {
+  // Look for: **Personalized Outreach Strategy:** [content]
+  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i);
+  if (match) {
+    const strategy = match[1].trim().replace(/\n/g, ' ');
+    console.log(`📊 Found outreach strategy: "${strategy.substring(0, 100)}..."`);
+    return strategy;
+  }
+  return null;
+}
+
+function extractSalesSummary(section) {
+  // Look for the quoted sales summary after **Sales Summary:**
+  const match = section.match(/\*\*Sales Summary:\*\*\s*>\s*"([^"]+)"/i);
+  if (match) {
+    const summary = match[1].trim();
+    console.log(`📊 Found sales summary: "${summary.substring(0, 100)}..."`);
+    return summary;
+  }
+  return null;
 }
 
 // Helper function to get company domain
