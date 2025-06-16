@@ -379,10 +379,13 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
   try {
     const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+    
     // Extract insights from Perplexity response content
     const content = perplexityResponse || '';
+    
     // Find prospect-specific section in Perplexity response
     const prospectSection = findProspectSection(content, prospectName);
+    
     return {
       job_seniority: extractSeniority(prospectSection),
       estimated_tenure: extractTenure(prospectSection),
@@ -457,8 +460,7 @@ function extractOutreachStrategy(section) {
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?
-\s*([^*\n]+)/i);
+  const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?\s*([^*\n]+)/i);
   return match ? match[1].trim() : null;
 }
 
