@@ -775,6 +775,18 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
         
+        // Ensure equityScore and dataConfidence are numbers before status logic
+        if (typeof equityScore === 'string' && equityScore.includes('/')) {
+          equityScore = Number(equityScore.split('/')[0]);
+        } else {
+          equityScore = Number(equityScore);
+        }
+        if (typeof dataConfidence === 'string' && dataConfidence.includes('/')) {
+          dataConfidence = Number(dataConfidence.split('/')[0]);
+        } else {
+          dataConfidence = Number(dataConfidence);
+        }
+        
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
         
@@ -937,6 +949,18 @@ app.post('/api/find-prospects', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponsePOST);
         
+        // Ensure equityScore and dataConfidence are numbers before status logic
+        if (typeof equityScore === 'string' && equityScore.includes('/')) {
+          equityScore = Number(equityScore.split('/')[0]);
+        } else {
+          equityScore = Number(equityScore);
+        }
+        if (typeof dataConfidence === 'string' && dataConfidence.includes('/')) {
+          dataConfidence = Number(dataConfidence.split('/')[0]);
+        } else {
+          dataConfidence = Number(dataConfidence);
+        }
+        
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
         
@@ -976,7 +1000,7 @@ app.post('/api/find-prospects', async (req, res) => {
           
         if (error) {
           console.error('❌ Database error for', prospect.person_name, ':', error.message);
-  } else {
+        } else {
           console.log('✅ STORED:', prospect.person_name);
           storedCount++;
         }
