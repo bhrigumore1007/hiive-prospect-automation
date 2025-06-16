@@ -376,113 +376,31 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
   }
 }
 
-// Replacing createEnhancedIntelligence (starting at line 378) with the simple debug version
+// SIMPLE DEBUG VERSION
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
-  const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+  const prospectName = prospect.person_name || 'Unknown';
   
-  console.log('=== DEBUG START ===');
-  console.log('Prospect:', prospectName);
-  console.log('Response exists:', !!perplexityResponse);
-  console.log('Response length:', perplexityResponse ? perplexityResponse.length : 0);
+  console.log('DEBUG: Processing', prospectName);
   
-  if (perplexityResponse && prospectName === 'Rick Fulton') {
-    console.log('=== RICK FULTON SECTION ===');
-    console.log('First 500 chars:', perplexityResponse.substring(0, 500));
-    
-    // Find Rick's section
-    const sections = perplexityResponse.split('###');
-    sections.forEach((section, index) => {
-      if (section.includes('Rick Fulton')) {
-         console.log(`Rick found in section ${index}:`);
-         console.log(section.substring(0, 800));
-      }
-    });
+  if (prospectName === 'Rick Fulton' && perplexityResponse) {
+    console.log('RICK FULTON DATA START:');
+    console.log(perplexityResponse.substring(0, 2000));
+    console.log('RICK FULTON DATA END');
   }
   
-  console.log('=== DEBUG END ===');
-  
   return {
-    job_seniority: 'Debug Mode',
+    job_seniority: 'Debug',
     estimated_tenure: '2-4 years',
     employment_status: 'Current',
     estimated_equity_value: '$2M–$6M',
     preferred_channel: 'LinkedIn',
-    liquidity_signals: 'Debug extraction in progress',
+    liquidity_signals: 'Debug mode',
     equity_likelihood: 'High',
     liquidity_score: 8,
-    outreach_strategy: ( 'Debug mode active' ),
-    sales_summary: ( 'Debugging prospect extraction' )
+    outreach_strategy: 'Debug',
+    sales_summary: 'Debug mode'
   };
 };
-
-function findProspectSection(content, prospectName) {
-  const sections = content.split('###');
-  for (const section of sections) {
-    if (section.includes(prospectName)) {
-      return section;
-    }
-  }
-  return content;
-}
-
-function extractSeniority(section) {
-  const match = section.match(/- \*\*Seniority:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractTenure(section) {
-  const match = section.match(/- \*\*Estimated Tenure:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractEmploymentStatus(section) {
-  const match = section.match(/- \*\*Employment Status:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractEquityValue(section) {
-  const match = section.match(/- \*\*Estimated Equity Value:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractPreferredChannel(section) {
-  const match = section.match(/- \*\*Preferred Communication:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractLiquiditySignals(section) {
-  const match = section.match(/- \*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=- \*\*|$)/);
-  if (match) {
-    return match[1].trim().replace(/\s*-\s*/g, '; ').replace(/\n/g, ' ');
-  }
-  return null;
-}
-
-function extractEquityLikelihood(section) {
-  const match = section.match(/- \*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/);
-  return match ? match[1].trim() : null;
-}
-
-function extractLiquidityScore(section) {
-  const match = section.match(/- \*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/);
-  return match ? parseInt(match[1]) : null;
-}
-
-function extractOutreachStrategy(section) {
-  const match = section.match(/- \*\*Outreach Strategy:\*\*\s*([\s\S]*?)(?=- \*\*|$)/);
-  if (match) {
-    return match[1].trim().replace(/\s*-\s*/g, '; ').replace(/\n/g, ' ');
-  }
-  return null;
-}
-
-function extractSalesSummary(section) {
-  const match = section.match(/- \*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|$)/);
-  if (match) {
-    return match[1].trim().replace(/\n/g, ' ');
-  }
-  return null;
-}
 
 // Helper function to get company domain
 function getCompanyDomain(companyName) {
@@ -734,175 +652,6 @@ function isRealisticSeller(prospect, companyName) {
 
 // ===== MAIN ENDPOINTS =====
 
-// GET /api/find-prospects/:company endpoint
-app.get('/api/find-prospects/:company', async (req, res) => {
-  const startTime = Date.now();
-  try {
-    const company = req.params.company;
-    if (!company) {
-      return res.status(400).json({ error: 'Company name is required' });
-    }
-
-    console.log(`🏢 Starting prospect discovery for: ${company}`);
-
-    // STEP 1: Hunter.io discovery
-    console.log('🔍 Step 1: Finding prospects with Hunter.io...');
-    const prospectResults = await findEquityProspects(company, {});
-    console.log(`🔍 Discovery completed: found ${prospectResults?.results?.length || 0} prospects`);
-
-    if (!prospectResults?.results || prospectResults.results.length === 0) {
-      return res.json({
-        success: true,
-        company: company,
-        prospects_found: 0,
-        prospects_stored: 0,
-        prospects: [],
-        message: 'No prospects found for this company'
-      });
-    }
-
-    // STEP 2: Filter prospects
-    console.log('🔍 Step 2: Filtering for realistic sellers...');
-    const filteredProspects = prospectResults.results.filter(prospect => {
-      const isRealistic = isRealisticSeller(prospect, company);
-      const isValid = isValidProspect(prospect);
-      return isRealistic && isValid;
-    });
-    console.log(`✅ Found ${filteredProspects.length} realistic prospects`);
-
-    if (filteredProspects.length === 0) {
-      return res.json({
-        success: true,
-        company: company,
-        prospects_found: 0,
-        prospects_stored: 0,
-        prospects: [],
-        message: 'No realistic prospects found after filtering'
-      });
-    }
-
-    // STEP 3: Perplexity analysis and processing
-    console.log('💡 Step 3: Analyzing company and prospects with Perplexity...');
-    let perplexityResponse;
-    try {
-      perplexityResponse = await researchCompanyAndProspects(company, filteredProspects);
-      console.log('✅ Perplexity analysis complete');
-    } catch (error) {
-      console.error('💥 Perplexity analysis failed:', error.message);
-      return res.status(500).json({
-        error: 'Perplexity analysis failed',
-        details: error.message,
-        company: company
-      });
-    }
-
-    // Extract company insights
-    const companyInsights = extractCompanyInsights(perplexityResponse);
-    console.log('🏢 Company insights extracted:', companyInsights);
-
-    let storedCount = 0;
-    console.log(`📊 Processing ${filteredProspects.length} prospects with Perplexity intelligence...`);
-
-    // Process each prospect
-    for (let i = 0; i < filteredProspects.length; i++) {
-      const prospect = filteredProspects[i];
-      console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
-      
-      try {
-        // Calculate dynamic multiplier
-        const companyMultiplier = extractCompanyMultiplier(perplexityResponse, company);
-        
-        // Build company profile
-        const companyProfile = { 
-          equityMultiplier: companyMultiplier,
-          stage: companyInsights.stage || 'Unknown',
-          valuation: companyInsights.valuation || 1000000000
-        };
-
-        // Calculate scores
-        let equityScore = calculateEquityScore(prospect, companyProfile);
-        let dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
-        
-        // Generate intelligence
-        const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
-        
-        // Debug checkpoint - ensure we reach status logic
-        console.log(`🔍 REACHED STATUS SECTION for ${prospect.person_name} - equity: ${equityScore}, confidence: ${dataConfidence}`);
-        
-        // Determine status with debug logging
-        let status = 'Needs Research';
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
-
-        if (equityScore >= 7 && dataConfidence >= 4) {
-          status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
-        } else if (equityScore >= 6 && dataConfidence >= 3) {
-          status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
-        } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
-        }
-
-        console.log(`  FINAL STATUS: ${status}`);
-        
-        // After determining status, ensure it is lowercase
-        status = status.toLowerCase();
-        
-        console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
-        
-        // Store in database
-        const { data, error } = await supabase
-          .from('prospects')
-          .insert([{
-            full_name: prospect.person_name,
-            role_title: prospect.current_job_title,
-            company_name: company,
-            prospect_type: 'seller',
-            priority_score: equityScore,
-            qualification_status: status,
-            confidence_level: dataConfidence,
-            research_notes: JSON.stringify(enhancedIntelligence),
-            discovery_method: 'perplexity_automated'
-          }]);
-          
-        if (error) {
-          console.error('❌ Database error for', prospect.person_name, ':', error.message);
-        } else {
-          console.log('✅ STORED:', prospect.person_name);
-          storedCount++;
-        }
-        
-      } catch (err) {
-        console.error('❌ Failed to process prospect:', prospect.person_name, err.message);
-        continue;
-      }
-    }
-
-    console.log(`🎉 Processing complete: ${storedCount}/${filteredProspects.length} prospects stored`);
-
-    // Return success response
-    res.json({
-      success: true,
-      company: company,
-      prospects_found: filteredProspects.length,
-      prospects_stored: storedCount,
-      processing_time: `${Date.now() - startTime}ms`,
-      processing_mode: 'perplexity_production'
-    });
-
-  } catch (error) {
-    console.error('💥 Endpoint error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      details: error.message,
-      company: req.params?.company || 'unknown',
-      processing_time: `${Date.now() - startTime}ms`
-    });
-  }
-});
-
 // POST /api/find-prospects endpoint
 app.post('/api/find-prospects', async (req, res) => {
   const startTime = Date.now();
@@ -995,29 +744,13 @@ app.post('/api/find-prospects', async (req, res) => {
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
         
-        // Debug checkpoint - ensure we reach status logic
-        console.log(`🔍 REACHED STATUS SECTION for ${prospect.person_name} - equity: ${equityScore}, confidence: ${dataConfidence}`);
-        
-        // Determine status with debug logging
-        let status = 'Needs Research';
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
-
+        // Determine status
+        let status = 'needs research';
         if (equityScore >= 7 && dataConfidence >= 4) {
-          status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
+          status = 'qualified';
         } else if (equityScore >= 6 && dataConfidence >= 3) {
-          status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
-        } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
+          status = 'qualified';
         }
-
-        console.log(`  FINAL STATUS: ${status}`);
-        
-        // After determining status, ensure it is lowercase
-        status = status.toLowerCase();
         
         console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
@@ -1049,4 +782,96 @@ app.post('/api/find-prospects', async (req, res) => {
       }
     }
 
-    console.log('RICK FULTON DATA:');
+    console.log(`🎉 Processing complete: ${storedCount}/${filteredProspects.length} prospects stored`);
+
+    // Return success response
+    res.json({
+      success: true,
+      company: company,
+      prospects_found: filteredProspects.length,
+      prospects_stored: storedCount,
+      processing_time: `${Date.now() - startTime}ms`,
+      processing_mode: 'perplexity_production'
+    });
+
+  } catch (error) {
+    console.error('💥 Endpoint error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+      company: req.body?.company || 'unknown',
+      processing_time: `${Date.now() - startTime}ms`
+    });
+  }
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Test database connection - show all prospects
+app.get('/api/test-db', async (req, res) => {
+  console.log('🔍 Testing database connection...');
+  try {
+    const { data, error } = await supabase
+      .from('prospects')
+      .select('*')
+      .order('id', { ascending: true });
+    
+    if (error) throw error;
+    
+    console.log(`✅ Database test successful - found ${data.length} prospects`);
+    res.json({ 
+      status: 'db_working', 
+      total_prospects: data.length,
+      prospects: data,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Database test failed:', error.message);
+    res.status(500).json({ 
+      error: 'Database connection failed',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Delete prospect endpoint
+app.delete('/api/prospects/:id', async (req, res) => {
+  console.log('🗑️ Delete prospect request for ID:', req.params.id);
+  try {
+    const prospectId = req.params.id;
+    if (!prospectId) {
+      return res.status(400).json({ error: 'Prospect ID is required' });
+    }
+    
+    const { data, error } = await supabase
+      .from('prospects')
+      .delete()
+      .eq('id', prospectId);
+    
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return res.status(500).json({ error: 'Failed to delete prospect from database' });
+    }
+    
+    console.log('✅ Prospect deleted successfully:', prospectId);
+    res.json({ success: true, message: 'Prospect deleted successfully' });
+  } catch (error) {
+    console.error('Delete prospect error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('\n🚀 Server running on port', PORT);
+  console.log('\nAvailable endpoints:');
+  console.log('💚 Health: http://localhost:' + PORT + '/api/health');
+  console.log('💾 Test DB: http://localhost:' + PORT + '/api/test-db');
+  console.log('🔍 Find Prospects POST: http://localhost:' + PORT + '/api/find-prospects');
+  console.log('🗑️ Delete Prospect: DELETE http://localhost:' + PORT + '/api/prospects/:id');
+});
