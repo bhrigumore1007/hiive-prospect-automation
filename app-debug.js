@@ -1049,4 +1049,4 @@ app.post('/api/find-prospects', async (req, res) => {
       }
     }
 
-    console.log(`
+    console.log('RICK FULTON DATA:');
