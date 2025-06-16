@@ -405,193 +405,71 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
 };
 
 function findProspectSection(content, prospectName) {
-  // Find the individual prospect analysis section starting with ###
   const sections = content.split('###');
   for (const section of sections) {
     if (section.includes(prospectName)) {
       return section;
     }
   }
-  // Fallback: search entire content for prospect name context
   return content;
 }
 
 function extractSeniority(section) {
-  // Look for seniority patterns in the Figma format
-  const patterns = [
-    /\*\*Seniority:\*\*\s*([^\n*]+)/i,
-    /Seniority:\s*([^\n*]+)/i,
-    /Director \(([^)]+)\)/i,
-    /Executive \(([^)]+)\)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  // Fallback: detect from content
-  if (section.includes('Director')) return 'Director';
-  if (section.includes('Executive')) return 'Executive';
-  if (section.includes('Senior')) return 'Senior';
-  if (section.includes('Mid-')) return 'Mid-level';
-  return null;
+  const match = section.match(/- \*\*Seniority:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractTenure(section) {
-  // Look for tenure patterns
-  const patterns = [
-    /\*\*Estimated Tenure:\*\*\s*([^\n*]+)/i,
-    /\*\*Tenure:\*\*\s*([^\n*]+)/i,
-    /Tenure:\s*([^\n*]+)/i,
-    /(\d+[–-]\d+)\s*years/i,
-    /(\d+\+?)\s*years/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  return null;
+  const match = section.match(/- \*\*Estimated Tenure:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractEmploymentStatus(section) {
-  // Look for employment status
-  const patterns = [
-    /\*\*Employment Status:\*\*\s*([^\n*]+)/i,
-    /Employment Status:\s*([^\n*]+)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  if (section.includes('Current employee')) return 'Current';
-  return 'Current';
+  const match = section.match(/- \*\*Employment Status:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractEquityValue(section) {
-  // Look for equity value patterns
-  const patterns = [
-    /\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i,
-    /Equity Value:\s*([^\n*]+)/i,
-    /\$(\d+[KMB]?[–-]\$?\d+[KMB]?)/i,
-    /\$(\d+[KMB])/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  return null;
+  const match = section.match(/- \*\*Estimated Equity Value:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractPreferredChannel(section) {
-  // Look for communication preferences
-  const patterns = [
-    /\*\*Preferred Communication:\*\*\s*([^\n*]+)/i,
-    /Communication:\s*([^\n*]+)/i,
-    /Channel:\s*([^\n*]+)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  if (section.includes('LinkedIn') && section.includes('email')) return 'LinkedIn/Email';
-  if (section.includes('LinkedIn')) return 'LinkedIn';
-  if (section.includes('Email') || section.includes('email')) return 'Email';
-  return null;
+  const match = section.match(/- \*\*Preferred Communication:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractLiquiditySignals(section) {
-  // Look for specific liquidity signals
-  const patterns = [
-    /\*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
-    /Liquidity Signals:\s*([\s\S]*?)(?=\*\*|$)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) {
-      return match[1].trim().replace(/\n/g, '; ').replace(/\s+/g, ' ');
-    }
+  const match = section.match(/- \*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=- \*\*|$)/);
+  if (match) {
+    return match[1].trim().replace(/\s*-\s*/g, '; ').replace(/\n/g, ' ');
   }
-  // Extract key signal phrases
-  const signals = [];
-  if (section.includes('fully vested')) signals.push('Fully vested after 4+ years');
-  if (section.includes('tender offer')) signals.push('Recent tender offer opportunity');
-  if (section.includes('IPO delay')) signals.push('IPO delays creating portfolio concentration');
-  if (section.includes('May 2024')) signals.push('Last liquidity window was May 2024');
-  return signals.length > 0 ? signals.join('; ') : null;
+  return null;
 }
 
 function extractEquityLikelihood(section) {
-  // Look for equity ownership likelihood
-  const patterns = [
-    /\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i,
-    /Ownership Likelihood:\s*([^\n*]+)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) return match[1].trim();
-  }
-  if (section.includes('High')) return 'High';
-  if (section.includes('Medium')) return 'Medium';
-  if (section.includes('Low')) return 'Low';
-  return null;
+  const match = section.match(/- \*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/);
+  return match ? match[1].trim() : null;
 }
 
 function extractLiquidityScore(section) {
-  // Look for liquidity motivation score
-  const patterns = [
-    /\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i,
-    /Motivation Score:\s*(\d+)\/10/i,
-    /Score:\s*(\d+)\/10/i,
-    /(\d+)\/10/
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) {
-      const score = parseInt(match[1]);
-      if (score >= 1 && score <= 10) return score;
-    }
-  }
-  return null;
+  const match = section.match(/- \*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/);
+  return match ? parseInt(match[1]) : null;
 }
 
 function extractOutreachStrategy(section) {
-  // Look for outreach strategy
-  const patterns = [
-    /\*\*Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
-    /\*\*Personalized Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i,
-    /Strategy:\s*([\s\S]*?)(?=\*\*|$)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) {
-      return match[1].trim().replace(/\n/g, ' ').replace(/\s+/g, ' ');
-    }
-  }
-  // Look for strategy-related content
-  const lines = section.split('\n');
-  for (const line of lines) {
-    if (line.includes('Reference') || line.includes('Highlight') || line.includes('Emphasize')) {
-      return line.trim().replace(/^[-*]\s*/, '');
-    }
+  const match = section.match(/- \*\*Outreach Strategy:\*\*\s*([\s\S]*?)(?=- \*\*|$)/);
+  if (match) {
+    return match[1].trim().replace(/\s*-\s*/g, '; ').replace(/\n/g, ' ');
   }
   return null;
 }
 
 function extractSalesSummary(section) {
-  // Look for sales summary
-  const patterns = [
-    /\*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|$)/i,
-    /\*\*Sales Summary:\*\*\s*([\s\S]*?)(?=---|$)/i,
-    /Sales Summary:\s*([\s\S]*?)(?=---|$)/i
-  ];
-  for (const pattern of patterns) {
-    const match = section.match(pattern);
-    if (match) {
-      return match[1].trim().replace(/\n/g, ' ').replace(/\s+/g, ' ');
-    }
+  const match = section.match(/- \*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|$)/);
+  if (match) {
+    return match[1].trim().replace(/\n/g, ' ');
   }
-  // Look for quoted sales summary text
-  const quotedMatch = section.match(/[">]\s*"([^"]+)"/);
-  if (quotedMatch) return quotedMatch[1];
   return null;
 }
 
