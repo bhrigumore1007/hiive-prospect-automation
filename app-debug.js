@@ -379,61 +379,88 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
   try {
     const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
-    const prospectRole = prospect.current_job_title || prospect.role_title || 'Unknown Role';
-    
-    // Extract insights from Perplexity response
+    // Extract insights from Perplexity response content
     const content = perplexityResponse || '';
-    
+    // Find prospect-specific section in Perplexity response
+    const prospectSection = findProspectSection(content, prospectName);
     return {
-      job_seniority: 'Senior level',
-      estimated_tenure: '2-4 years',
-      employment_status: 'Current',
-      estimated_equity_value: '0.05-0.15%',
-      preferred_channel: 'LinkedIn',
-      liquidity_signals: extractSpecificSignals(content).join('; ') || 'Market conditions favorable for equity transactions',
-      equity_likelihood: 'High',
-      liquidity_score: prospect.liquidity_score || 7,
-      outreach_strategy: `Contact ${prospectName} regarding ${companyName} equity opportunities and market timing`,
-      sales_summary: `${prospectName} represents a qualified prospect for equity transactions at ${companyName}`
+      job_seniority: extractSeniority(prospectSection),
+      estimated_tenure: extractTenure(prospectSection),
+      employment_status: extractEmploymentStatus(prospectSection),
+      estimated_equity_value: extractEquityValue(prospectSection),
+      preferred_channel: extractPreferredChannel(prospectSection),
+      liquidity_signals: extractLiquiditySignals(prospectSection),
+      equity_likelihood: extractEquityLikelihood(prospectSection),
+      liquidity_score: extractLiquidityScore(prospectSection),
+      outreach_strategy: extractOutreachStrategy(prospectSection),
+      sales_summary: extractSalesSummary(prospectSection)
     };
   } catch (error) {
     console.error('💥 Enhanced intelligence creation failed:', error);
-    return {
-      job_seniority: 'Senior level',
-      estimated_tenure: '2-4 years',
-      employment_status: 'Current',
-      estimated_equity_value: '0.05-0.15%',
-      preferred_channel: 'LinkedIn',
-      liquidity_signals: 'Market conditions favorable for equity transactions',
-      equity_likelihood: 'High',
-      liquidity_score: 7,
-      outreach_strategy: 'Reference company developments and market timing',
-      sales_summary: 'Qualified prospect with equity potential'
-    };
+    return {};
   }
 };
 
-const extractSpecificSignals = (perplexityResponse) => {
-  try {
-    if (!perplexityResponse || typeof perplexityResponse !== 'string') {
-      return ['Market conditions favorable for portfolio diversification'];
+function findProspectSection(content, prospectName) {
+  const sections = content.split(/###\s|##\s/);
+  for (const section of sections) {
+    if (section.includes(prospectName)) {
+      return section;
     }
-    const signals = [];
-    if (perplexityResponse.includes('$40B') || perplexityResponse.includes('funding')) {
-      signals.push('Recent funding activity creates liquidity opportunities');
-    }
-    if (perplexityResponse.includes('tender') || perplexityResponse.includes('secondary')) {
-      signals.push('Secondary market programs available');
-    }
-    if (perplexityResponse.includes('vested') || perplexityResponse.includes('4+ years')) {
-      signals.push('Employee likely approaching or reached vesting milestones');
-    }
-    return signals.length > 0 ? signals : ['Market timing favorable for equity transactions'];
-  } catch (error) {
-    console.error('💥 Signal extraction failed:', error);
-    return ['Standard market conditions apply'];
   }
-};
+  return content;
+}
+
+function extractSeniority(section) {
+  const match = section.match(/\*\*Seniority:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractTenure(section) {
+  const match = section.match(/\*\*Tenure Estimate:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractEmploymentStatus(section) {
+  const match = section.match(/\*\*Employment Status:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractEquityValue(section) {
+  const match = section.match(/\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractPreferredChannel(section) {
+  const match = section.match(/\*\*Preferred Channel:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractLiquiditySignals(section) {
+  const match = section.match(/\*\*Specific Liquidity Signals:\*\*\s*([^*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractEquityLikelihood(section) {
+  const match = section.match(/\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractLiquidityScore(section) {
+  const match = section.match(/\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
+  return match ? parseInt(match[1]) : null;
+}
+
+function extractOutreachStrategy(section) {
+  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([^*]+)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractSalesSummary(section) {
+  const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?
+*([^*\n]+)/i);
+  return match ? match[1].trim() : null;
+}
 
 // Helper function to get company domain
 function getCompanyDomain(companyName) {
