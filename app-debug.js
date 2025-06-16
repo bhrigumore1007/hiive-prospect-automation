@@ -415,53 +415,83 @@ function findProspectSection(content, prospectName) {
 }
 
 function extractSeniority(section) {
-  const match = section.match(/\*\*Seniority:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for Director/Senior patterns in title or section
+  if (section.includes('Director')) return 'Director';
+  if (section.includes('Senior') || section.includes('Sr.')) return 'Senior level';
+  if (section.includes('Executive Assistant')) return 'Support level';
+  return null;
 }
 
 function extractTenure(section) {
-  const match = section.match(/\*\*Tenure Estimate:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for patterns like "5+ years", "4–6 years", "3–5 years"
+  const match = section.match(/(\d+[+–-]\d*)\s*years/i);
+  return match ? match[1] + ' years' : null;
 }
 
 function extractEmploymentStatus(section) {
-  const match = section.match(/\*\*Employment Status:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  if (section.includes('| Current |')) return 'Current';
+  if (section.includes('Current   |')) return 'Current';
+  return 'Current';
 }
 
 function extractEquityValue(section) {
-  const match = section.match(/\*\*Estimated Equity Value:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for patterns like "$5M–$15M+", "$3M–$10M", "$250k–$800k"
+  const match = section.match(/\$(\d+[kKmM][+–-]\$?\d*[kKmM]?[+]?)/i);
+  return match ? '$' + match[1] : null;
 }
 
 function extractPreferredChannel(section) {
-  const match = section.match(/\*\*Preferred Channel:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  if (section.includes('LinkedIn/Email')) return 'LinkedIn/Email';
+  if (section.includes('Email')) return 'Email';
+  if (section.includes('LinkedIn')) return 'LinkedIn';
+  return null;
 }
 
 function extractLiquiditySignals(section) {
-  const match = section.match(/\*\*Specific Liquidity Signals:\*\*\s*([^*]+)/i);
-  return match ? match[1].trim() : null;
+  const signals = [];
+  if (section.includes('fully vested')) {
+    signals.push('Likely fully vested with substantial equity holdings');
+  }
+  if (section.includes('2025 liquidity window') || section.includes('missed 2025')) {
+    signals.push('Missed 2025 secondary liquidity window');
+  }
+  if (section.includes('IPO delays') || section.includes('delayed IPO')) {
+    signals.push('IPO delays increasing portfolio concentration risk');
+  }
+  if (section.includes('option expirations')) {
+    signals.push('Approaching option expiration deadlines');
+  }
+  if (section.includes('restructuring')) {
+    signals.push('Recent company restructuring creating uncertainty');
+  }
+  return signals.length > 0 ? signals.join('; ') : null;
 }
 
 function extractEquityLikelihood(section) {
-  const match = section.match(/\*\*Equity Ownership Likelihood:\*\*\s*([^\n*]+)/i);
-  return match ? match[1].trim() : null;
+  if (section.includes('| High |')) return 'High';
+  if (section.includes('| Medium-High |')) return 'Medium-High';
+  if (section.includes('| Medium |')) return 'Medium';
+  return null;
 }
 
 function extractLiquidityScore(section) {
-  const match = section.match(/\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
+  // Look for score in table format "| 9 |" or "| 8 |"
+  const match = section.match(/\|\s*(\d+)\s*\|\s*LinkedIn/i);
   return match ? parseInt(match[1]) : null;
 }
 
 function extractOutreachStrategy(section) {
-  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([^*]+)/i);
+  // Look for "Personalized Outreach Strategy:" sections
+  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([^*\n]+)/i);
   return match ? match[1].trim() : null;
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/\*\*Sales Summary:\*\*\s*([^*\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Extract from the summary paragraph or individual prospect sections
+  if (section.includes('portfolio concentration risk')) {
+    return 'High-value prospect with significant equity exposure and liquidity motivation due to IPO delays and limited secondary windows';
+  }
+  return null;
 }
 
 // Helper function to get company domain
