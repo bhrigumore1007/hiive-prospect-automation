@@ -416,62 +416,68 @@ function findProspectSection(content, prospectName) {
 }
 
 function extractSeniority(section) {
-  const match = section.match(/- \*\*Seniority:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row with prospect name and extract seniority column
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|\s*[^|]*\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractTenure(section) {
-  const match = section.match(/- \*\*Estimated Tenure:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row and extract tenure column (4th column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractEmploymentStatus(section) {
-  const match = section.match(/- \*\*Employment Status:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row and extract status column (5th column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractEquityValue(section) {
-  const match = section.match(/- \*\*Estimated Equity Value:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row and extract equity value column (6th column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractPreferredChannel(section) {
-  const match = section.match(/- \*\*Preferred Communication:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row and extract preferred channel (last column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractLiquiditySignals(section) {
-  const match = section.match(/- \*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)- \*\*Compliance/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, '; ');
-  }
-  return null;
+  // Look for table row and extract liquidity signals column (8th column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractEquityLikelihood(section) {
-  const match = section.match(/- \*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/i);
-  return match ? match[1].trim() : null;
+  // Look for table row and extract equity likelihood column (7th column)
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  return tableMatch ? tableMatch[1].trim() : null;
 }
 
 function extractLiquidityScore(section) {
-  const match = section.match(/- \*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
-  return match ? parseInt(match[1]) : null;
+  // Look for table row and extract liquidity score column
+  const tableMatch = section.match(/\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*[^|]*\|\s*([^|]*)\s*\|/);
+  if (tableMatch) {
+    const scoreText = tableMatch[1].trim();
+    const scoreNum = parseInt(scoreText);
+    return isNaN(scoreNum) ? null : scoreNum;
+  }
+  return null;
 }
 
 function extractOutreachStrategy(section) {
-  const match = section.match(/- \*\*Outreach Strategy:\*\*\s*([\s\S]*?)- \*\*Sales Summary/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, ' ');
-  }
-  return null;
+  // Look for detailed prospect section with outreach strategy
+  const strategyMatch = section.match(/\*\*Personalized Outreach:\*\*\s*([^*]+)/i);
+  return strategyMatch ? strategyMatch[1].trim() : null;
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/- \*\*Sales Summary Paragraph:\*\*\s*([\s\S]*?)(?=---|\n\n|$)/i);
-  if (match) {
-    return match[1].trim().replace(/\s+/g, ' ').replace(/\n/g, ' ');
-  }
-  return null;
+  // Look for detailed prospect section with sales summary
+  const summaryMatch = section.match(/\*\*Sales Summary:\*\*\s*[>]?\s*([^*"]+)/i);
+  return summaryMatch ? summaryMatch[1].trim() : null;
 }
 
 // Helper function to get company domain
