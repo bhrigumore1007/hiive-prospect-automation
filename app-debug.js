@@ -163,7 +163,9 @@ function calculateProspectConfidence(prospect, companyProfile, perplexityRespons
   }
   
   // Email verification (1 point)
-  if (prospect.email && prospect.email.includes('@') && !prospect.email.includes('noemail')) {
+  if ((prospect.email || prospect.email_address) && 
+      (prospect.email?.includes('@') || prospect.email_address?.includes('@')) && 
+      !(prospect.email?.includes('noemail') || prospect.email_address?.includes('noemail'))) {
     confidence += 1;
     console.log(`  ✅ Valid email found: +1 (${confidence}/5)`);
   }
