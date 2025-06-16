@@ -757,7 +757,7 @@ app.get('/api/find-prospects/:company', async (req, res) => {
 
     // Process each prospect
     for (let i = 0; i < filteredProspects.length; i++) {
-      const prospect = filteredProspects[i];
+      let prospect = filteredProspects[i];
       console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
       
       try {
@@ -931,7 +931,7 @@ app.post('/api/find-prospects', async (req, res) => {
 
     // Process each prospect
     for (let i = 0; i < filteredProspects.length; i++) {
-      const prospect = filteredProspects[i];
+      let prospect = filteredProspects[i];
       console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
       
       try {
