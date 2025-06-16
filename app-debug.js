@@ -388,25 +388,31 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
       return {};
     }
     
-    // Find the specific prospect section in the response
+    // Find the specific prospect section (### Rick Fulton format)
     const prospectSection = findProspectSection(perplexityResponse, prospectName);
-    console.log(`📄 Found section length: ${prospectSection.length} chars`);
     
-    // Extract data from the prospect's dedicated section
+    if (!prospectSection) {
+      console.log(`❌ No section found for ${prospectName}`);
+      return {};
+    }
+    
+    console.log(`✅ Found section for ${prospectName}, extracting data...`);
+    
+    // Extract data using the ACTUAL format from your Perplexity response
     const intelligence = {
-      job_seniority: extractJobSeniority(prospectSection),
-      estimated_tenure: extractTenure(prospectSection),
-      employment_status: extractEmploymentStatus(prospectSection),
-      estimated_equity_value: extractEquityValue(prospectSection),
-      preferred_channel: extractPreferredChannel(prospectSection),
+      job_seniority: extractField(prospectSection, 'Seniority'),
+      estimated_tenure: extractField(prospectSection, 'Estimated Tenure'),
+      employment_status: extractField(prospectSection, 'Employment Status'),
+      estimated_equity_value: extractField(prospectSection, 'Estimated Equity Value'),
+      preferred_channel: extractField(prospectSection, 'Preferred Channel'),
       liquidity_signals: extractLiquiditySignals(prospectSection),
-      equity_likelihood: extractEquityLikelihood(prospectSection),
+      equity_likelihood: extractField(prospectSection, 'Equity Ownership Likelihood'),
       liquidity_score: extractLiquidityScore(prospectSection),
-      outreach_strategy: extractOutreachStrategy(prospectSection),
+      outreach_strategy: extractField(prospectSection, 'Personalized Outreach'),
       sales_summary: extractSalesSummary(prospectSection)
     };
     
-    console.log(`✅ Extracted intelligence:`, intelligence);
+    console.log(`✅ Extracted intelligence for ${prospectName}:`, intelligence);
     return intelligence;
     
   } catch (error) {
@@ -416,78 +422,39 @@ const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) =
 };
 
 function findProspectSection(content, prospectName) {
-  // Look for the prospect's dedicated section with ###
+  // Split by ### to get individual sections
   const sections = content.split('###');
   
   for (const section of sections) {
-    if (section.includes(prospectName)) {
+    // Look for section that contains the prospect name in the header
+    if (section.includes(prospectName) && section.includes('**Seniority:**')) {
       console.log(`✅ Found dedicated section for ${prospectName}`);
-      return section;
+      return section.trim();
     }
   }
   
   console.log(`❌ No dedicated section found for ${prospectName}`);
-  return content; // Fallback to full content
-}
-
-function extractJobSeniority(section) {
-  // Look for: **Job Title/Seniority:** Director (Senior leadership, high equity)
-  const match = section.match(/\*\*Job Title\/Seniority:\*\*\s*([^\n]+)/i);
-  if (match) {
-    const seniority = match[1].trim();
-    console.log(`📊 Found seniority: "${seniority}"`);
-    return seniority;
-  }
   return null;
 }
 
-function extractTenure(section) {
-  // Look for: **Estimated Tenure:** 3-5 years
-  const match = section.match(/\*\*Estimated Tenure:\*\*\s*([^\n]+)/i);
+function extractField(section, fieldName) {
+  // Look for pattern: - **Seniority:** Director (senior leadership)
+  const pattern = new RegExp(`-\\s*\\*\\*${fieldName}:\\*\\*\\s*([^\\n]+)`, 'i');
+  const match = section.match(pattern);
+  
   if (match) {
-    const tenure = match[1].trim();
-    console.log(`📊 Found tenure: "${tenure}"`);
-    return tenure;
+    const value = match[1].trim();
+    console.log(`📊 Found ${fieldName}: "${value}"`);
+    return value;
   }
-  return null;
-}
-
-function extractEmploymentStatus(section) {
-  // Look for: **Employment Status:** Current employee
-  const match = section.match(/\*\*Employment Status:\*\*\s*([^\n]+)/i);
-  if (match) {
-    const status = match[1].trim();
-    console.log(`📊 Found employment status: "${status}"`);
-    return status;
-  }
-  return null;
-}
-
-function extractEquityValue(section) {
-  // Look for: **Estimated Equity Value:** $2M–$5M+
-  const match = section.match(/\*\*Estimated Equity Value:\*\*\s*([^\n]+)/i);
-  if (match) {
-    const equityValue = match[1].trim();
-    console.log(`📊 Found equity value: "${equityValue}"`);
-    return equityValue;
-  }
-  return null;
-}
-
-function extractPreferredChannel(section) {
-  // Look for: **Preferred Channel:** LinkedIn or email
-  const match = section.match(/\*\*Preferred Channel:\*\*\s*([^\n]+)/i);
-  if (match) {
-    const channel = match[1].trim();
-    console.log(`📊 Found preferred channel: "${channel}"`);
-    return channel;
-  }
+  
+  console.log(`❌ Could not find ${fieldName}`);
   return null;
 }
 
 function extractLiquiditySignals(section) {
-  // Look for the bullet points under **Specific Liquidity Signals:**
-  const signalsMatch = section.match(/\*\*Specific Liquidity Signals:\*\*\s*([\s\S]*?)(?=\*\*|$)/i);
+  // Look for **Actionable Liquidity Signals:** followed by bullet points
+  const signalsMatch = section.match(/\*\*Actionable Liquidity Signals:\*\*\s*([\s\S]*?)(?=\*\*|$)/i);
   
   if (signalsMatch) {
     const signalsText = signalsMatch[1].trim();
@@ -503,50 +470,36 @@ function extractLiquiditySignals(section) {
       return result;
     }
   }
-  return null;
-}
-
-function extractEquityLikelihood(section) {
-  // Look for: **Equity Ownership Likelihood:** High
-  const match = section.match(/\*\*Equity Ownership Likelihood:\*\*\s*([^\n]+)/i);
-  if (match) {
-    const likelihood = match[1].trim();
-    console.log(`📊 Found equity likelihood: "${likelihood}"`);
-    return likelihood;
-  }
+  
+  console.log(`❌ Could not find liquidity signals`);
   return null;
 }
 
 function extractLiquidityScore(section) {
-  // Look for: **Liquidity Motivation Score:** 9/10
+  // Look for **Liquidity Motivation Score:** 8/10
   const match = section.match(/\*\*Liquidity Motivation Score:\*\*\s*(\d+)\/10/i);
+  
   if (match) {
     const score = parseInt(match[1]);
     console.log(`📊 Found liquidity score: ${score}`);
     return score;
   }
-  return null;
-}
-
-function extractOutreachStrategy(section) {
-  // Look for: **Personalized Outreach Strategy:** [content]
-  const match = section.match(/\*\*Personalized Outreach Strategy:\*\*\s*([\s\S]*?)(?=\*\*|$)/i);
-  if (match) {
-    const strategy = match[1].trim().replace(/\n/g, ' ');
-    console.log(`📊 Found outreach strategy: "${strategy.substring(0, 100)}..."`);
-    return strategy;
-  }
+  
+  console.log(`❌ Could not find liquidity score`);
   return null;
 }
 
 function extractSalesSummary(section) {
-  // Look for the quoted sales summary after **Sales Summary:**
-  const match = section.match(/\*\*Sales Summary:\*\*\s*>\s*"([^"]+)"/i);
+  // Look for the quoted sales summary: > "As a senior Figma engineering leader..."
+  const match = section.match(/>\s*"([^"]+)"/i);
+  
   if (match) {
     const summary = match[1].trim();
     console.log(`📊 Found sales summary: "${summary.substring(0, 100)}..."`);
     return summary;
   }
+  
+  console.log(`❌ Could not find sales summary`);
   return null;
 }
 
