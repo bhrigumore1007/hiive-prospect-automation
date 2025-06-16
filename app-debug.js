@@ -775,27 +775,26 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
         
-        // Generate intelligence
-        const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
-        
-        // Determine status with debug logging
-        let status = 'Needs Research';
+        // Debug checkpoint before status calculation
+        console.log(`🔍 ABOUT TO CALCULATE STATUS for ${prospect.person_name}`);
+        console.log(`  Current values: equity=${equityScore}, confidence=${dataConfidence}`);
 
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
+        // Determine status with explicit debugging
+        let status = 'Needs Research';
+        console.log(`  Initial status: ${status}`);
 
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
+          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 1 met)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
+          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 2 met)`);
         } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
+          console.log(`  ❌ STATUS REMAINS: Needs Research`);
+          console.log(`    Reason: equity=${equityScore}<7 OR confidence=${dataConfidence}<4`);
         }
 
-        console.log(`  FINAL STATUS: ${status}`);
+        console.log(`  🎯 FINAL STATUS BEFORE DATABASE: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -937,27 +936,26 @@ app.post('/api/find-prospects', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponsePOST);
         
-        // Generate intelligence
-        const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
-        
-        // Determine status with debug logging
-        let status = 'Needs Research';
+        // Debug checkpoint before status calculation
+        console.log(`🔍 ABOUT TO CALCULATE STATUS for ${prospect.person_name}`);
+        console.log(`  Current values: equity=${equityScore}, confidence=${dataConfidence}`);
 
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
+        // Determine status with explicit debugging
+        let status = 'Needs Research';
+        console.log(`  Initial status: ${status}`);
 
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
+          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 1 met)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
+          console.log(`  ✅ STATUS CHANGED TO: Qualified (condition 2 met)`);
         } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
+          console.log(`  ❌ STATUS REMAINS: Needs Research`);
+          console.log(`    Reason: equity=${equityScore}<7 OR confidence=${dataConfidence}<4`);
         }
 
-        console.log(`  FINAL STATUS: ${status}`);
+        console.log(`  🎯 FINAL STATUS BEFORE DATABASE: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
