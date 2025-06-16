@@ -757,7 +757,7 @@ app.get('/api/find-prospects/:company', async (req, res) => {
 
     // Process each prospect
     for (let i = 0; i < filteredProspects.length; i++) {
-      let prospect = filteredProspects[i];
+      const prospect = filteredProspects[i];
       console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
       
       try {
@@ -775,39 +775,18 @@ app.get('/api/find-prospects/:company', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponse);
         
-        // Ensure equityScore and dataConfidence are numbers before status logic
-        if (typeof equityScore === 'string' && equityScore.includes('/')) {
-          equityScore = Number(equityScore.split('/')[0]);
-        } else {
-          equityScore = Number(equityScore);
-        }
-        if (typeof dataConfidence === 'string' && dataConfidence.includes('/')) {
-          dataConfidence = Number(dataConfidence.split('/')[0]);
-        } else {
-          dataConfidence = Number(dataConfidence);
-        }
-        
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponse, company);
         
-        // Determine status with debug logging
+        // Determine status
         let status = 'Needs Research';
-
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
-
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
-        } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
-
-        console.log(`  FINAL STATUS: ${status}`);
+        
+        console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -931,7 +910,7 @@ app.post('/api/find-prospects', async (req, res) => {
 
     // Process each prospect
     for (let i = 0; i < filteredProspects.length; i++) {
-      let prospect = filteredProspects[i];
+      const prospect = filteredProspects[i];
       console.log(`\n💾 Processing prospect ${i+1}/${filteredProspects.length}: ${prospect.person_name}`);
       
       try {
@@ -949,39 +928,18 @@ app.post('/api/find-prospects', async (req, res) => {
         const equityScore = calculateEquityScore(prospect, companyProfile);
         const dataConfidence = calculateProspectConfidence(prospect, companyProfile, perplexityResponsePOST);
         
-        // Ensure equityScore and dataConfidence are numbers before status logic
-        if (typeof equityScore === 'string' && equityScore.includes('/')) {
-          equityScore = Number(equityScore.split('/')[0]);
-        } else {
-          equityScore = Number(equityScore);
-        }
-        if (typeof dataConfidence === 'string' && dataConfidence.includes('/')) {
-          dataConfidence = Number(dataConfidence.split('/')[0]);
-        } else {
-          dataConfidence = Number(dataConfidence);
-        }
-        
         // Generate intelligence
         const enhancedIntelligence = createEnhancedIntelligence(prospect, perplexityResponsePOST, company);
         
-        // Determine status with debug logging
+        // Determine status
         let status = 'Needs Research';
-
-        console.log(`🎯 STATUS CALCULATION for ${prospect.person_name}:`);
-        console.log(`  equityScore: ${equityScore} (${typeof equityScore})`);
-        console.log(`  dataConfidence: ${dataConfidence} (${typeof dataConfidence})`);
-
         if (equityScore >= 7 && dataConfidence >= 4) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: High equity (${equityScore}≥7) + High confidence (${dataConfidence}≥4)`);
         } else if (equityScore >= 6 && dataConfidence >= 3) {
           status = 'Qualified';
-          console.log(`  ✅ QUALIFIED: Good equity (${equityScore}≥6) + Good confidence (${dataConfidence}≥3)`);
-        } else {
-          console.log(`  ❌ NEEDS RESEARCH: Low equity or confidence`);
         }
-
-        console.log(`  FINAL STATUS: ${status}`);
+        
+        console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
         // Store in database
         const { data, error } = await supabase
@@ -1104,4 +1062,4 @@ app.listen(PORT, () => {
   console.log('🔍 Find Prospects GET: http://localhost:' + PORT + '/api/find-prospects/:company');
   console.log('🔍 Find Prospects POST: http://localhost:' + PORT + '/api/find-prospects');
   console.log('🗑️ Delete Prospect: DELETE http://localhost:' + PORT + '/api/prospects/:id');
-}); 
+});
