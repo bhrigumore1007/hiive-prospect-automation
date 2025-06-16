@@ -458,7 +458,7 @@ function extractOutreachStrategy(section) {
 
 function extractSalesSummary(section) {
   const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?
-*([^*\n]+)/i);
+\s*([^*\n]+)/i);
   return match ? match[1].trim() : null;
 }
 
