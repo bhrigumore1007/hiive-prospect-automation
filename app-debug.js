@@ -799,6 +799,9 @@ app.get('/api/find-prospects/:company', async (req, res) => {
 
         console.log(`  FINAL STATUS: ${status}`);
         
+        // After determining status, ensure it is lowercase
+        status = status.toLowerCase();
+        
         console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
         // Store in database
@@ -964,6 +967,9 @@ app.post('/api/find-prospects', async (req, res) => {
         }
 
         console.log(`  FINAL STATUS: ${status}`);
+        
+        // After determining status, ensure it is lowercase
+        status = status.toLowerCase();
         
         console.log(`📊 Final scores: Equity: ${equityScore}/10, Confidence: ${dataConfidence}/5, Status: ${status}`);
         
