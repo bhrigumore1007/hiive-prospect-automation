@@ -379,42 +379,56 @@ OUTPUT: Provide comprehensive structured data with specific, actionable liquidit
 const createEnhancedIntelligence = (prospect, perplexityResponse, companyName) => {
   try {
     const prospectName = prospect.person_name || prospect.full_name || 'Unknown';
+    const prospectRole = prospect.current_job_title || prospect.role_title || 'Unknown Role';
+    
+    console.log(`🔍 DEBUGGING INTELLIGENCE EXTRACTION for: ${prospectName}`);
     
     // Extract insights from Perplexity response content
     const content = perplexityResponse || '';
+    console.log(`📄 Content length: ${content.length} characters`);
+    console.log(`📄 Content preview (first 200 chars): ${content.substring(0, 200)}`);
     
     // Find prospect-specific section in Perplexity response
     const prospectSection = findProspectSection(content, prospectName);
+    console.log(`📄 Found prospect section length: ${prospectSection.length} characters`);
+    console.log(`📄 Prospect section preview: ${prospectSection.substring(0, 200)}`);
+    
+    // Test each extraction function
+    const seniority = extractSeniority(prospectSection);
+    console.log(`🎯 Extracted seniority: ${seniority}`);
+    
+    const tenure = extractTenure(prospectSection);
+    console.log(`🎯 Extracted tenure: ${tenure}`);
+    
+    const equityValue = extractEquityValue(prospectSection);
+    console.log(`🎯 Extracted equity value: ${equityValue}`);
+    
+    const liquidityScore = extractLiquidityScore(prospectSection);
+    console.log(`🎯 Extracted liquidity score: ${liquidityScore}`);
+    
+    const liquiditySignals = extractLiquiditySignals(prospectSection);
+    console.log(`🎯 Extracted liquidity signals: ${liquiditySignals}`);
+    
+    const salesSummary = extractSalesSummary(prospectSection);
+    console.log(`🎯 Extracted sales summary: ${salesSummary}`);
     
     return {
-      job_seniority: extractSeniority(prospectSection),
-      estimated_tenure: extractTenure(prospectSection),
+      job_seniority: seniority,
+      estimated_tenure: tenure,
       employment_status: extractEmploymentStatus(prospectSection),
-      estimated_equity_value: extractEquityValue(prospectSection),
+      estimated_equity_value: equityValue,
       preferred_channel: extractPreferredChannel(prospectSection),
-      liquidity_signals: extractLiquiditySignals(prospectSection),
+      liquidity_signals: liquiditySignals,
       equity_likelihood: extractEquityLikelihood(prospectSection),
-      liquidity_score: extractLiquidityScore(prospectSection),
+      liquidity_score: liquidityScore,
       outreach_strategy: extractOutreachStrategy(prospectSection),
-      sales_summary: extractSalesSummary(prospectSection)
+      sales_summary: salesSummary
     };
   } catch (error) {
     console.error('💥 Enhanced intelligence creation failed:', error);
     return {};
   }
 };
-
-function findProspectSection(content, prospectName) {
-  // Find the individual prospect analysis section
-  const sections = content.split(/#### /);
-  for (const section of sections) {
-    if (section.includes(prospectName)) {
-      return section;
-    }
-  }
-  // Fallback: search entire content for prospect name context
-  return content;
-}
 
 function extractSeniority(section) {
   if (section.includes('Executive')) return 'Executive';
