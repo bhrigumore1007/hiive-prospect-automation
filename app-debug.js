@@ -460,8 +460,8 @@ function extractOutreachStrategy(section) {
 }
 
 function extractSalesSummary(section) {
-  const match = section.match(/[-*]\s*\*\*Sales Summary:\*\*\s*[>]?
-?\s*([^*\n]+)/i);
+  const match = section.match(/\*\*Sales Summary:\*\*\s*[>]?
+\s*([^*\n]+)/i);
   return match ? match[1].trim() : null;
 }
 
