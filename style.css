@@ -624,8 +624,8 @@ body {
 .equity-analysis-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 20px;
-  margin-top: 12px;
+  gap: 8px 16px;
+  margin-top: 8px;
 }
 
 /* Section Cards */

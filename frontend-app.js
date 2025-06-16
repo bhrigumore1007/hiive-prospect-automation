@@ -182,14 +182,12 @@ function showProspectModal(prospect) {
     </div>
   </div></div>`;
   
-  // Equity Analysis Card (2-column grid, 4 fields)
+  // Equity Analysis Card (2-column grid, 2 fields only)
   html += `<div class="hiive-modal-section"><div class="modal-card">
     <div class="modal-card-header"><i data-lucide='briefcase'></i> Equity Analysis</div>
     <div class="equity-analysis-grid">
       <div class="modal-info-item"><span class="modal-info-label">Job Seniority</span><span class="modal-info-value">${enhanced.job_seniority || 'N/A'}</span></div>
-      <div class="modal-info-item"><span class="modal-info-label">Estimated Tenure</span><span class="modal-info-value">${enhanced.estimated_tenure || 'N/A'}</span></div>
       <div class="modal-info-item"><span class="modal-info-label">Equity Value</span><span class="modal-info-value">${enhanced.estimated_equity_value || 'N/A'}</span></div>
-      <div class="modal-info-item"><span class="modal-info-label">Preferred Channel</span><span class="modal-info-value">${enhanced.preferred_channel || 'N/A'}</span></div>
     </div>
   </div></div>`;
   
